@@ -2201,6 +2201,9 @@ Příklad:
 
         // ── PREVIEW MODAL ─────────────────────────────────────────────────
         function showPreviewModal({ title, data, sections, onApply, applyLabel = '✅ Aplikovat výsledky' }) {
+            // Store the callback globally so the inline onclick can safely reach it
+            window._pendingApplyFn = onApply;
+
             const overlay = document.createElement('div');
             overlay.className = 'preview-overlay';
             overlay.innerHTML = `
@@ -2221,7 +2224,7 @@ Příklad:
                         <button class="btn btn-secondary" onclick="this.closest('.preview-overlay').remove()">← Zpět</button>
                         <button class="btn btn-primary" style="flex:1;" onclick="
                             this.closest('.preview-overlay').remove();
-                            (${onApply.toString()})();
+                            if (window._pendingApplyFn) { window._pendingApplyFn(); window._pendingApplyFn = null; }
                         ">${applyLabel}</button>
                     </div>
                 </div>`;
@@ -3024,8 +3027,13 @@ Vrať POUZE platný JSON array, BEZ úvodního textu nebo markdown.
                         const trust    = parseInt(c4.trust)    || 3;
                         const friction = parseInt(c4.friction) || 3;
                         const c4Score  = ((needFit + reach + trust + (6 - friction)) / 4).toFixed(1);
-                        return { name: comp.name, url: comp.url || '', type: comp.type || 'direct',
-                            description: comp.description || '', needFit, reach, trust, friction, c4Score };
+                        return {
+                            name: comp.name, url: comp.url || '', type: comp.type || 'direct',
+                            description: comp.description || '', needFit, reach, trust, friction, c4Score,
+                            // Preserve AI-enriched fields
+                            positioning: comp.positioning || null,
+                            blindspots: Array.isArray(comp.blindspots) ? comp.blindspots : []
+                        };
                     });
                     renderCompetitors();
                     saveProject();
@@ -3110,14 +3118,12 @@ Vrať POUZE platný JSON array, BEZ úvodního textu nebo markdown.
                         return {
                             name: comp.name,
                             url: comp.url || '',
-                            type: comp.type || 'direct',  // NEW: competitor type
+                            type: comp.type || 'direct',
                             description: comp.description || '',
-                            // FLAT structure for compatibility
-                            needFit: needFit,
-                            reach: reach,
-                            trust: trust,
-                            friction: friction,
-                            c4Score: c4Score
+                            needFit, reach, trust, friction, c4Score,
+                            // Preserve AI-enriched fields
+                            positioning: comp.positioning || null,
+                            blindspots: Array.isArray(comp.blindspots) ? comp.blindspots : []
                         };
                     });
                     
