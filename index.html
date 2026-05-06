@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- KOMPAS™ build v7.0.0-alpha.18 (2026-05-06) — Path C source tree (v7-source). See LAYERS.md / FEATURES.md for architecture. -->
+<!-- KOMPAS™ build v7.0.0-alpha.26 (2026-05-06) — Path C source tree (v7-source). See LAYERS.md / FEATURES.md for architecture. -->
 <!-- KOMPAS v6.9.8: Data flow audit + enrichment. 1) Agresivní varianta rozšířena z 5 gap TITULŮ na plný kontext (brief, SWOT, segmenty, konkurenti, mezery, důkazy, mediální mix, reference k hlavní strategii) — není to už datově hladová kopie, ale plnohodnotná kontra-strategie. 2) briefAn (SWOT z úvodní analýzy briefu) nově vstupuje do yi.strategy jako samostatná sekce, plus instrukce v system-role aby AI explicitně vázala doporučení na silné/slabé stránky, příležitosti, rizika. 3) Media prompt (yi.media) rozšířen o demandPools, evidence a positioning — kanály se teď doporučují s vědomím segmentů, tónu značky a tržních důkazů. 4) Positioning framework prompt rozšířen o naše analyzované konkurenty, top mezery a segmenty — white space se identifikuje na základě REÁLNÉ competitive intel, ne jen archetypu. Žádné AI volání nebylo zjednodušeno — všechny předchozí datové vazby zachovány. -->
-<html lang="cs"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>KOMPAS™ v7.0.0-alpha.18 — Competitive Growth Operating System</title><link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%234f46e5'/><text x='16' y='22' text-anchor='middle' fill='white' font-size='18' font-weight='bold'>K</text></svg>"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}@keyframes spin{to{transform:rotate(360deg)}}</style></head><body><div id="root"></div><script type="module">
+<html lang="cs"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>KOMPAS™ v7.0.0-alpha.26 — Competitive Growth Operating System</title><link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%234f46e5'/><text x='16' y='22' text-anchor='middle' fill='white' font-size='18' font-weight='bold'>K</text></svg>"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}@keyframes spin{to{transform:rotate(360deg)}}</style></head><body><div id="root"></div><script type="module">
 (function(){const t=document.createElement("link").relList;if(t&&t.supports&&t.supports("modulepreload"))return;for(const i of document.querySelectorAll('link[rel="modulepreload"]'))r(i);new MutationObserver(i=>{for(const o of i)if(o.type==="childList")for(const a of o.addedNodes)a.tagName==="LINK"&&a.rel==="modulepreload"&&r(a)}).observe(document,{childList:!0,subtree:!0});function n(i){const o={};return i.integrity&&(o.integrity=i.integrity),i.referrerPolicy&&(o.referrerPolicy=i.referrerPolicy),i.crossOrigin==="use-credentials"?o.credentials="include":i.crossOrigin==="anonymous"?o.credentials="omit":o.credentials="same-origin",o}function r(i){if(i.ep)return;i.ep=!0;const o=n(i);fetch(i.href,o)}})();var Ls=typeof globalThis<"u"?globalThis:typeof window<"u"?window:typeof global<"u"?global:typeof self<"u"?self:{};function be(e){return e&&e.__esModule&&Object.prototype.hasOwnProperty.call(e,"default")?e.default:e}var Yx={exports:{}},iu={},Xx={exports:{}},se={};/**
  * @license React
  * react.production.min.js
@@ -4733,65 +4733,99 @@ ${e.strategy.consultantNotes}
 /* Note: sidebar items use existing .kr-nav-item / .kr-nav-divider styles defined at top of file */
 
 /* === Enrichment block (injected into each tab) === */
+/* === Enrichment block — compact / "tail of main content" design ===========
+ * alpha.20 redesign: previously this block was full-width (880px), with
+ * heavy padding (24/28px), bold gradient bg, and 22px sparkle — making it
+ * feel like a separate dominant section. Now it's compact and visually
+ * subordinate: connects directly under main content as an enrichment hint,
+ * not a peer-level block.
+ */
 .kr-enrichment {
-  margin: 32px auto 24px;
+  margin: 8px auto 16px;            /* was 32px auto 24px — connects to content above */
   max-width: 880px;
-  padding: 24px 28px;
-  background: linear-gradient(135deg, #fafbff 0%, var(--kr-brand-50) 100%);
-  border: 1px solid #e9e5fa;
-  border-radius: 16px;
+  padding: 12px 16px;               /* was 24px 28px */
+  background: var(--kr-bg-subtle, #fafbfc);  /* was bold gradient */
+  border: 1px solid var(--kr-border, #e5e7eb);
+  border-radius: 10px;              /* was 16px */
   font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
 }
 
 .kr-enrichment-header {
   display: flex;
-  align-items: flex-start;
-  margin-bottom: 8px;
+  align-items: center;              /* was flex-start — tighter alignment */
+  margin-bottom: 0;                 /* was 8px — no gap when no intro/cards on next line */
 }
 
 .kr-enrichment-header-left {
   display: flex;
-  gap: 12px;
-  align-items: flex-start;
+  gap: 8px;                         /* was 12px */
+  align-items: center;              /* was flex-start */
+  flex: 1;
+  min-width: 0;
 }
 
 .kr-enrichment-sparkle {
-  font-size: 22px;
+  font-size: 14px;                  /* was 22px — much smaller, no longer dominant */
   line-height: 1;
-  margin-top: 2px;
+  margin-top: 0;                    /* was 2px */
+  opacity: 0.7;
 }
 
 .kr-enrichment-title {
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 13px;                  /* was 16px */
+  font-weight: 600;                 /* was 700 */
   color: var(--kr-ink);
   line-height: 1.3;
 }
 
 .kr-enrichment-sub {
-  font-size: 11.5px;
+  font-size: 11px;                  /* was 11.5px */
   color: var(--kr-ink-soft);
-  margin-top: 2px;
-  font-weight: 500;
+  margin-top: 0;                    /* was 2px — render inline-ish */
+  font-weight: 400;                 /* was 500 */
+  display: inline-block;
+}
+
+/* Make title + sub render as a single inline row instead of stacked */
+.kr-enrichment-header-left > div:last-child {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.kr-enrichment-header-left > div:last-child::before {
+  /* tiny separator dot between title and sub */
+  content: none;
+}
+.kr-enrichment-sub::before {
+  content: '·';
+  margin-right: 6px;
+  color: var(--kr-ink-mute, #d1d5db);
 }
 
 .kr-enrichment-intro {
-  margin-top: 12px;
-  margin-bottom: 16px;
-  padding: 0 0 0 34px; /* align with header text after sparkle */
-  font-size: 12.5px;
+  margin-top: 8px;                  /* was 12px */
+  margin-bottom: 10px;              /* was 16px */
+  padding: 0 0 0 22px;              /* was 34px — aligned with smaller sparkle */
+  font-size: 11.5px;                /* was 12.5px */
   color: var(--kr-ink-mid);
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
 .kr-enrichment-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 10px;
+  gap: 6px;                         /* was 10px */
+  margin-top: 8px;
 }
 @media (min-width: 700px) {
   .kr-enrichment-grid {
     grid-template-columns: 1fr 1fr;
+  }
+  /* Single card stays 1-col even on wide viewports */
+  .kr-enrichment-grid:has(.kr-enrichment-card:only-child) {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -4800,39 +4834,39 @@ ${e.strategy.consultantNotes}
   text-align: left;
   background: #fff;
   border: 1px solid var(--kr-border);
-  border-radius: 12px;
-  padding: 14px 16px;
+  border-radius: 8px;               /* was 12px */
+  padding: 10px 12px;               /* was 14px 16px */
   cursor: pointer;
   font-family: inherit;
   font-size: inherit;
   color: inherit;
-  transition: all 0.15s;
+  transition: all 0.12s;
   width: 100%;
 }
 .kr-enrichment-card:hover {
   border-color: var(--kr-brand-300);
   background: #fbfaff;
-  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.08);
-  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.06);  /* was 0 4px 14px ... 0.08 */
+  transform: none;                  /* was translateY(-1px) — no jump */
 }
 
 .kr-enrichment-card-head {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 6px;
+  gap: 8px;                         /* was 10px */
+  margin-bottom: 3px;               /* was 6px */
 }
 
 .kr-enrichment-card-icon {
-  font-size: 20px;
+  font-size: 14px;                  /* was 20px */
   flex-shrink: 0;
-  width: 32px;
-  height: 32px;
+  width: 22px;                      /* was 32px */
+  height: 22px;                     /* was 32px */
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: var(--kr-brand-50);
-  border-radius: 8px;
+  border-radius: 6px;               /* was 8px */
 }
 
 .kr-enrichment-card-title-block {
@@ -4843,30 +4877,30 @@ ${e.strategy.consultantNotes}
 .kr-enrichment-card-title-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;                         /* was 8px */
   flex-wrap: wrap;
 }
 
 .kr-enrichment-card-title {
-  font-size: 13.5px;
-  font-weight: 700;
+  font-size: 12.5px;                /* was 13.5px */
+  font-weight: 600;                 /* was 700 */
   color: var(--kr-ink);
   line-height: 1.3;
 }
 
 .kr-enrichment-card-provider {
-  font-size: 10px;
+  font-size: 9px;                   /* was 10px */
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   background: var(--kr-brand-100);
   color: var(--kr-brand-700);
-  padding: 2px 7px;
+  padding: 1px 6px;                 /* was 2px 7px */
   border-radius: 100px;
 }
 
 .kr-enrichment-card-arrow {
-  font-size: 16px;
+  font-size: 14px;                  /* was 16px */
   color: var(--kr-ink-faint);
   flex-shrink: 0;
   transition: transform 0.15s, color 0.15s;
@@ -4877,10 +4911,10 @@ ${e.strategy.consultantNotes}
 }
 
 .kr-enrichment-card-desc {
-  font-size: 12px;
+  font-size: 11px;                  /* was 12px */
   color: var(--kr-ink-soft);
-  line-height: 1.55;
-  padding-left: 42px; /* aligns with title */
+  line-height: 1.45;                /* was 1.55 */
+  padding-left: 30px;               /* was 42px — aligns with smaller icon */
 }
 
 /* === Segment-aware badge (Phase 8) === */
@@ -21402,51 +21436,10 @@ function renderPlanDashboard() {
 
   wrap.appendChild(secondary);
 
-  // Fáze C (Step 12): if KR.documentPlan is loaded, wrap dashboard + outline
-  // in a 2-column layout (β option: outline 40% left, dashboard 60% right,
-  // both below the Layer 1 AI content per Step 5g).
-  if (window.KR && window.KR.documentPlan && typeof window.KR.documentPlan.render === 'function') {
-    try {
-      const twoCol = document.createElement('div');
-      twoCol.className = 'kr-plan-2col';
-      twoCol.style.cssText =
-        'display:grid;grid-template-columns:minmax(320px,40%) 1fr;gap:18px;' +
-        'margin-top:18px;align-items:start';
-
-      const outlineCol = document.createElement('div');
-      outlineCol.className = 'kr-plan-outline-col';
-      outlineCol.appendChild(window.KR.documentPlan.render(ks));
-
-      const dashboardCol = document.createElement('div');
-      dashboardCol.className = 'kr-plan-dashboard-col';
-
-      // Move all current `wrap` children into the right column (preserves
-      // header, stats, qualityGate banner, hero CTA, secondary cards).
-      while (wrap.firstChild) {
-        dashboardCol.appendChild(wrap.firstChild);
-      }
-
-      twoCol.appendChild(outlineCol);
-      twoCol.appendChild(dashboardCol);
-      wrap.appendChild(twoCol);
-
-      // Responsive: under 900px, stack vertically (outline above dashboard)
-      // since 2-col is unreadable on narrow viewports
-      const mq = window.matchMedia('(max-width: 900px)');
-      const applyResponsive = () => {
-        if (mq.matches) {
-          twoCol.style.gridTemplateColumns = '1fr';
-        } else {
-          twoCol.style.gridTemplateColumns = 'minmax(320px,40%) 1fr';
-        }
-      };
-      applyResponsive();
-      mq.addEventListener('change', applyResponsive);
-    } catch (e) {
-      console.warn('[plan-replacement] documentPlan render failed, falling back to single-col:', e);
-    }
-  }
-
+  // alpha.25: dashboard now ends here. Outline is injected SEPARATELY at the
+  // bottom of vendor content (see injectDashboard below). This split keeps
+  // the dashboard as the page hero, lets vendor content render in the middle,
+  // and puts the outline at the very bottom.
   return wrap;
 }
 
@@ -21484,16 +21477,40 @@ function injectDashboard() {
   _hiddenSiblings = [];
   const dashboard = renderPlanDashboard();
 
-  // Wrap dashboard with margin-top to separate from Layer 1 content
-  dashboard.style.marginTop = '40px';
+  // alpha.25: dashboard becomes the page hero, placed at TOP of vendor
+  // content (above the "Váš strategický plán" heading + Executive Summary).
+  // Previously (alpha.24 and earlier) the dashboard was appended at the
+  // bottom — user had to scroll past the entire vendor strategy content
+  // to see stats, QA gate, and "Vygenerovat strategii" CTA. Now they're
+  // immediately visible.
+  dashboard.style.marginTop = '0';
+  dashboard.style.marginBottom = '32px';  // gap between hero and vendor content
+
+  // Build outline as separate full-width section, injected at BOTTOM
+  let outlineSection = null;
+  if (window.KR && window.KR.documentPlan && typeof window.KR.documentPlan.render === 'function') {
+    try {
+      const ks = (window.KR.appState && window.KR.appState.getKompas()) || {};
+      outlineSection = document.createElement('div');
+      outlineSection.id = 'kr-plan-outline-full';
+      outlineSection.className = 'kr-plan-outline-full';
+      outlineSection.style.cssText = 'margin-top:32px';
+      outlineSection.appendChild(window.KR.documentPlan.render(ks));
+    } catch (e) {
+      console.warn('[plan-replacement] documentPlan render failed:', e);
+      outlineSection = null;
+    }
+  }
 
   if (scrollHost) {
-    // Append to scroll container's content area = appears below Layer 1 content
-    // when user scrolls down. Layer 1 keeps full viewport at the top.
-    scrollHost.appendChild(dashboard);
+    // Dashboard at TOP of scroll content (above vendor heading + content)
+    scrollHost.insertBefore(dashboard, scrollHost.firstChild);
+    // Outline at BOTTOM of scroll content (below vendor content)
+    if (outlineSection) scrollHost.appendChild(outlineSection);
   } else {
-    // Fallback: append to contentArea
-    contentArea.appendChild(dashboard);
+    // Fallback: contentArea
+    contentArea.insertBefore(dashboard, contentArea.firstChild);
+    if (outlineSection) contentArea.appendChild(outlineSection);
   }
 
   _injected = true;
@@ -21504,6 +21521,9 @@ function cleanupDashboard() {
   if (!_injected) return;
   const existing = document.getElementById('kr-plan-dashboard');
   if (existing) existing.remove();
+  // alpha.25: also clean up the separately-injected outline section
+  const outlineFull = document.getElementById('kr-plan-outline-full');
+  if (outlineFull) outlineFull.remove();
 
   // Restore original content
   _hiddenSiblings.forEach(({ el, origDisplay }) => {
@@ -24098,7 +24118,57 @@ if (document.readyState === 'loading') {
   function buildExistingStrategy(strategy) {
     if (!strategy) return '';
     const lines = [];
-    
+
+    // alpha.26: Phase 3 Decision Layer fields (A1-A11 brief sections).
+    // Previously these were generated by top-consulting Decision Layer but
+    // never read here — strategy v2, consultant pack, and AI cached sections
+    // (B22-B28) all received an incomplete picture missing the manažerská
+    // vrstva. Now: full propagation to every downstream AI prompt.
+    if (strategy.executiveDecisionPage) {
+      lines.push('Executive Decision Page: ' + trunc(strategy.executiveDecisionPage, 600));
+    }
+    if (strategy.oneSentenceStrategy) {
+      lines.push('One-Sentence Strategy: ' + trunc(strategy.oneSentenceStrategy, 200));
+    }
+    if (strategy.strategicDiagnosis) {
+      lines.push('Strategic Diagnosis: ' + trunc(strategy.strategicDiagnosis, 500));
+    }
+    if (strategy.growthThesis) {
+      lines.push('Growth Thesis: ' + trunc(strategy.growthThesis, 400));
+    }
+    if (strategy.marketTruth) {
+      lines.push('Market Truth: ' + trunc(strategy.marketTruth, 400));
+    }
+    if (strategy.strategicChoiceArchitecture) {
+      // Could be string or object — handle both
+      const sca = strategy.strategicChoiceArchitecture;
+      if (typeof sca === 'string') {
+        lines.push('Strategic Choice Architecture: ' + trunc(sca, 500));
+      } else if (typeof sca === 'object') {
+        const parts = [];
+        if (sca.where) parts.push('Where: ' + trunc(sca.where, 150));
+        if (sca.how) parts.push('How: ' + trunc(sca.how, 150));
+        if (sca.what) parts.push('What: ' + trunc(sca.what, 150));
+        if (parts.length) lines.push('Strategic Choice Architecture: ' + parts.join(' | '));
+      }
+    }
+    if (strategy.mustWinBattles) {
+      const mwb = strategy.mustWinBattles;
+      if (Array.isArray(mwb) && mwb.length) {
+        lines.push('Must-Win Battles (' + mwb.length + '):');
+        mwb.slice(0, 5).forEach(b => {
+          const title = typeof b === 'string' ? b : (b.title || b.name || b.battle || '?');
+          const desc = typeof b === 'object' ? (b.description || b.why || b.rationale) : null;
+          lines.push('  - ' + title + (desc ? ': ' + trunc(desc, 150) : ''));
+        });
+      } else if (typeof mwb === 'string') {
+        lines.push('Must-Win Battles: ' + trunc(mwb, 400));
+      }
+    }
+    if (strategy.managementAsk) {
+      lines.push('Management Ask: ' + trunc(strategy.managementAsk, 300));
+    }
+
     if (strategy.thesis) lines.push('Thesis: ' + trunc(strategy.thesis, 400));
     
     if (strategy.pillars && strategy.pillars.length) {
@@ -24257,12 +24327,16 @@ if (document.readyState === 'loading') {
     }
     
     // 8. Positioning
-    if (state.positioning && (state.positioning.primary || state.positioning.hook)) {
+    // alpha.23: include frameworkText (AI Positioning Framework from Nastavení
+    // značky tab). Previously this was generated but never read by downstream
+    // prompts — strategy/plan/pack/AI sections never saw it.
+    if (state.positioning && (state.positioning.primary || state.positioning.hook || state.positioning.frameworkText)) {
       const p = state.positioning;
       sections.push('═══ POSITIONING ═══\n' +
         (p.primary ? 'Primary: ' + trunc(p.primary, 300) + '\n' : '') +
         (p.hook ? 'Hook: ' + trunc(p.hook, 200) + '\n' : '') +
-        (p.manifesto ? 'Manifesto: ' + trunc(p.manifesto, 400) : ''));
+        (p.manifesto ? 'Manifesto: ' + trunc(p.manifesto, 400) + '\n' : '') +
+        (p.frameworkText ? '\n--- AI Positioning Framework ---\n' + trunc(p.frameworkText, 2500) : ''));
     }
     
     // 9. Mediální mix
@@ -25856,6 +25930,12 @@ if (document.readyState === 'loading') {
         (sp.emotionalCore ? '<div style="padding:14px;background:#f5f3ff;border-radius:8px"><div style="font-size:9px;color:#7c3aed;font-weight:700;letter-spacing:0.08em;margin-bottom:4px">EMOCE</div><div style="font-size:13px;color:#1a1a2e;font-weight:600">' + escHtml(sp.emotionalCore) + '</div></div>' : '') +
         (sp.competitiveAngle ? '<div style="padding:14px;background:#fef2f2;border-radius:8px"><div style="font-size:9px;color:#dc2626;font-weight:700;letter-spacing:0.08em;margin-bottom:4px">COMPETITIVE ANGLE</div><div style="font-size:13px;color:#1a1a2e;font-weight:600">' + escHtml(sp.competitiveAngle) + '</div></div>' : '') +
         (sp.ownable ? '<div style="padding:14px;background:#f0fdf4;border-radius:8px"><div style="font-size:9px;color:#059669;font-weight:700;letter-spacing:0.08em;margin-bottom:4px">OWNABLE</div><div style="font-size:13px;color:#1a1a2e;font-weight:600">' + escHtml(sp.ownable) + '</div></div>' : '') +
+      '</div>' : '') +
+
+      // alpha.23: AI Positioning Framework (if generated on Nastavení značky tab)
+      (p.frameworkText ? '<div style="margin-top:18px;padding:18px 22px;background:#fafbfc;border:1px solid #e5e7eb;border-radius:10px">' +
+        '<div style="font-size:10px;font-weight:700;color:#7c3aed;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:10px">AI Positioning Framework</div>' +
+        '<div style="font-size:11.5px;color:#3d3d56;line-height:1.65;white-space:pre-wrap">' + escHtml(clean(p.frameworkText)) + '</div>' +
       '</div>' : '') +
       '</div>';
   }
@@ -29982,10 +30062,19 @@ if (document.readyState === 'loading') {
     return;
   }
 
-  /* ─── Sections catalog (45 items: 11+20+6+8) ───────────────────────── */
+  /* ─── Sections catalog (45 items: 11+20+8+6) ─────────────────────────
+   * alpha.22: Reorder + rename groups for user-friendly Czech labels.
+   * Order matches user mental model (deliverable-first, evidence last):
+   *   1. Váš strategický plán      (was 'Decision Layer')
+   *   2. 90denní plán a execution  (was 'Strategy & Execution Layer')
+   *   3. Sekce pro konzultanty     (was 'Consultant Interpretation Pack')
+   *   4. Důkazy a podklady         (was 'Evidence Book')
+   * Brief IDs (A1-A11, B12-B31, C32-C37, P1-P8) remain unchanged for
+   * downstream code that relies on them.
+   */
   const SECTIONS = {
     decision: {
-      title: 'Decision Layer',
+      title: 'Váš strategický plán',
       icon: '🎯',
       color: '#dc2626',
       items: [
@@ -30003,7 +30092,7 @@ if (document.readyState === 'loading') {
       ]
     },
     strategy: {
-      title: 'Strategy & Execution Layer',
+      title: '90denní plán a execution',
       icon: '📊',
       color: '#1B3A6B',
       items: [
@@ -30029,8 +30118,32 @@ if (document.readyState === 'loading') {
         { id: 'risks',             briefId: 'B31', title: 'Risks & Guardrails',           statePath: 'strategy.risks',             qaCritical: true }
       ]
     },
+    pack: {
+      title: 'Sekce pro konzultanty',
+      icon: '🎤',
+      color: '#7c3aed',
+      items: [
+        // Note: keys MUST match what KR.consultantPack.generate() saves to state.
+        // The Phase 6 module returns: talkTrack3min, topDiscussionPoints, objections,
+        // workshopAgenda, decisionChecklist, actionChecklist, evidenceCheatSheet,
+        // validateWithClient. Earlier alpha.15 version mistakenly used shorter
+        // names — those never matched the actual saved keys, so all 8 P-sections
+        // showed MISSING even after Pack generation.
+        // packGenerator: 'all' marks the section as part of the bulk Phase 6 pack
+        // — clicking ↻ Regenerate triggers KR.consultantPack.generate which
+        // refreshes ALL 8 sections at once.
+        { id: 'talkTrack',         briefId: 'P1', title: 'Talk Track (3 min)',        statePath: 'strategy.consultantPack.talkTrack3min',     packGenerator: 'all' },
+        { id: 'discussionPoints',  briefId: 'P2', title: 'Top 5 Discussion Points',   statePath: 'strategy.consultantPack.topDiscussionPoints', packGenerator: 'all' },
+        { id: 'objections',        briefId: 'P3', title: 'Likely Objections',         statePath: 'strategy.consultantPack.objections',         packGenerator: 'all' },
+        { id: 'workshopAgenda',    briefId: 'P4', title: 'Workshop Agenda',           statePath: 'strategy.consultantPack.workshopAgenda',     packGenerator: 'all' },
+        { id: 'decisionChecklist', briefId: 'P5', title: 'Decision Checklist',        statePath: 'strategy.consultantPack.decisionChecklist',  packGenerator: 'all' },
+        { id: 'actionChecklist',   briefId: 'P6', title: 'Action Checklist',          statePath: 'strategy.consultantPack.actionChecklist',    packGenerator: 'all' },
+        { id: 'evidenceCheat',     briefId: 'P7', title: 'Evidence Cheat Sheet',      statePath: 'strategy.consultantPack.evidenceCheatSheet', packGenerator: 'all' },
+        { id: 'toValidate',        briefId: 'P8', title: 'What to Validate',          statePath: 'strategy.consultantPack.validateWithClient', packGenerator: 'all' }
+      ]
+    },
     evidence: {
-      title: 'Evidence Book',
+      title: 'Důkazy a podklady',
       icon: '📚',
       color: '#d97706',
       items: [
@@ -30040,21 +30153,6 @@ if (document.readyState === 'loading') {
         { id: 'battlecards',  briefId: 'C35', title: 'Win/Loss Battlecards', statePath: 'strategy.battlecards', layer2Output: 'battlecards' },
         { id: 'sourceAppx',   briefId: 'C36', title: 'Source Appendix',      statePath: 'evidence' },
         { id: 'methodology',  briefId: 'C37', title: 'Methodology',          static: true }
-      ]
-    },
-    pack: {
-      title: 'Consultant Interpretation Pack',
-      icon: '🎤',
-      color: '#7c3aed',
-      items: [
-        { id: 'talkTrack',         briefId: 'P1', title: 'Talk Track (3 min)',        statePath: 'strategy.consultantPack.talkTrack' },
-        { id: 'discussionPoints',  briefId: 'P2', title: 'Top 5 Discussion Points',   statePath: 'strategy.consultantPack.discussionPoints' },
-        { id: 'objections',        briefId: 'P3', title: 'Likely Objections',         statePath: 'strategy.consultantPack.objections' },
-        { id: 'workshopAgenda',    briefId: 'P4', title: 'Workshop Agenda',           statePath: 'strategy.consultantPack.workshopAgenda' },
-        { id: 'decisionChecklist', briefId: 'P5', title: 'Decision Checklist',        statePath: 'strategy.consultantPack.decisionChecklist' },
-        { id: 'actionChecklist',   briefId: 'P6', title: 'Action Checklist',          statePath: 'strategy.consultantPack.actionChecklist' },
-        { id: 'evidenceCheat',     briefId: 'P7', title: 'Evidence Cheat Sheet',      statePath: 'strategy.consultantPack.evidenceCheat' },
-        { id: 'toValidate',        briefId: 'P8', title: 'What to Validate',          statePath: 'strategy.consultantPack.toValidate' }
       ]
     }
   };
@@ -30401,6 +30499,26 @@ if (document.readyState === 'loading') {
         '</div>';
     }
 
+    // alpha.21: Consultant Pack trigger button — runs Phase 6 KR.consultantPack.generate
+    // which generates ALL 8 P-sections at once (talkTrack, objections, workshopAgenda...).
+    // Shown for any P-section with packGenerator: 'all'.
+    let packButton = '';
+    if (item.packGenerator === 'all') {
+      const value = getByPath(state, item.statePath);
+      const hasPack = isPopulated(value);
+      const buttonLabel = hasPack ? 'Regenerovat celý Pack' : 'Vygenerovat Consultant Pack';
+      const buttonIcon = hasPack ? '↻' : '🎤';
+      packButton =
+        '<button class="kr-doc-detail-pack" data-section-id="' + escHtml(item.id) + '" ' +
+          'style="margin-top:14px;padding:10px 14px;background:#7c3aed;color:#fff;border:none;border-radius:8px;' +
+          'font-size:12.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px">' +
+          '<span>' + buttonIcon + '</span> ' + escHtml(buttonLabel) +
+        '</button>' +
+        '<div style="margin-top:6px;font-size:10.5px;color:#6b7280;line-height:1.4">' +
+          'Vygeneruje všech 8 P-sekcí (talk track, námitky, workshop agenda, action checklist, ...) najednou přes window.KR.consultantPack.' +
+        '</div>';
+    }
+
     return '<div style="font-size:10px;font-weight:700;color:#9ca3af;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px">' +
         escHtml(item.briefId) + ' · ' + renderBadge(status) +
       '</div>' +
@@ -30409,7 +30527,8 @@ if (document.readyState === 'loading') {
       '</h3>' +
       body +
       regenButton +
-      layer2Button;
+      layer2Button +
+      packButton;
   }
 
   function openDetail(sectionId) {
@@ -30506,6 +30625,51 @@ if (document.readyState === 'loading') {
           layer2Btn.innerHTML = '<span>⚠</span> ' + (e.message || '?').slice(0, 50);
           layer2Btn.style.background = '#dc2626';
           layer2Btn.disabled = false;
+        }
+      });
+    }
+
+    // alpha.21: Wire Consultant Pack trigger button — runs Phase 6 generator
+    // for entire 8-section pack at once.
+    const packBtn = panel.querySelector('.kr-doc-detail-pack');
+    if (packBtn) {
+      packBtn.addEventListener('click', async () => {
+        if (!window.KR.consultantPack || typeof window.KR.consultantPack.generate !== 'function') {
+          packBtn.innerHTML = '<span>⚠</span> KR.consultantPack není načteno';
+          packBtn.style.background = '#dc2626';
+          return;
+        }
+        const apiKey = state && state.apiKey;
+        if (!apiKey) {
+          packBtn.innerHTML = '<span>⚠</span> Chybí API klíč';
+          packBtn.style.background = '#dc2626';
+          return;
+        }
+        packBtn.disabled = true;
+        packBtn.style.opacity = '0.6';
+        packBtn.innerHTML = '<span>⏳</span> Generuji Pack (8 sekcí)…';
+        try {
+          const pack = await window.KR.consultantPack.generate({
+            apiKey: apiKey,
+            state: state,
+            onProgress: (text) => {
+              if (typeof text === 'string' && text.length > 50) {
+                packBtn.innerHTML = '<span>⏳</span> Streaming… ' + text.length + ' chars';
+              }
+            }
+          });
+          window.KR.consultantPack.saveToState(pack);
+          packBtn.innerHTML = '<span>✓</span> Pack vygenerován (8/8)';
+          packBtn.style.background = '#059669';
+          setTimeout(() => {
+            openDetail(sectionId);  // refresh detail with new content
+            refreshOutline();        // refresh outline statuses (8 P-sections become Layer 1)
+          }, 1000);
+        } catch (e) {
+          console.error('[documentPlan] pack generate failed:', e);
+          packBtn.innerHTML = '<span>⚠</span> ' + (e.message || '?').slice(0, 50);
+          packBtn.style.background = '#dc2626';
+          packBtn.disabled = false;
         }
       });
     }
@@ -31272,6 +31436,165 @@ if (document.readyState === 'loading') {
     '%c[KOMPAS] Report Readiness loaded',
     'background:#1B3A6B;color:#fff;padding:2px 8px;border-radius:4px;font-weight:600',
     '— window.KR.reportReadiness ready (Brief Section 7.2 preview)'
+  );
+})();
+/* ========================================================================
+   KOMPAS™ Plan Tab Heading Rename — Phase 14 (Fáze C followup)
+   ════════════════════════════════════════════════════════════════════════
+   Vendor's main bundle renders the Plan tab post-generation with `Jt`
+   component that has hardcoded title="90denní plán". Problem: the section
+   below it contains a full strategy (Executive Summary + Datový základ
+   strategie + Konkurenční krajina + ...) — not just a 90-day plan. The
+   heading is misleading.
+   
+   Path C constraint: vendor bundle is read-only. So we mutate the DOM
+   post-render: find the H2 with "90denní plán" inside the Plan tab and
+   rewrite to "Váš strategický plán". Subtitle gets rewritten too.
+   
+   Mutation observer is scoped to body (vendor re-renders happen often)
+   but actual replacement is idempotent and only fires when needed.
+   
+   API: KR.planHeadingRename.start() / .stop()
+   ======================================================================== */
+(function () {
+  'use strict';
+
+  if (window.KR && window.KR.planHeadingRename) {
+    console.warn('[KOMPAS] planHeadingRename already loaded; skipping.');
+    return;
+  }
+
+  // The exact strings vendor renders. Match these to find the heading.
+  const VENDOR_TITLE = '90denní plán';
+  const VENDOR_SUB = 'Foundations → Traction → Scale';
+
+  // Replacement text — user-friendly, matches "VÁŠ STRATEGICKÝ PLÁN" eyebrow
+  // already used elsewhere in the dashboard column.
+  const NEW_TITLE = 'Váš strategický plán';
+  const NEW_SUB = 'Executive summary, datový základ, must-win battles a 90denní plán';
+
+  function isPlanTabActive() {
+    // Reuse existing dom utility if available
+    if (window.KR && window.KR.dom && typeof window.KR.dom.findActiveTab === 'function') {
+      const tab = window.KR.dom.findActiveTab();
+      return tab && tab.label === 'Váš plán';
+    }
+    // Fallback: check breadcrumb URL or active nav item
+    return /Váš plán/.test(document.body.textContent || '');
+  }
+
+  function rename() {
+    if (!isPlanTabActive()) return false;
+
+    // Find H2 with vendor title text. Vendor renders <h2 style="font-size:19;...">.
+    // We look for any H2 whose direct text is "90denní plán".
+    const headings = document.querySelectorAll('h2');
+    let found = false;
+    for (const h of headings) {
+      // Match by exact text (children of H2 may include badges so use textContent.trim())
+      // BUT: H2 may contain only text node + optional badge child. Get only the text node.
+      const firstTextNode = Array.from(h.childNodes).find(n => n.nodeType === 3 && n.textContent.trim());
+      if (firstTextNode && firstTextNode.textContent.trim() === VENDOR_TITLE) {
+        firstTextNode.textContent = NEW_TITLE;
+        h.dataset.krRenamed = 'true';
+        // Also rename the sibling <p> with subtitle (Jt renders <p> as next sibling
+        // of the H2's parent <div>, inside the same flex container)
+        const headingParent = h.parentElement;  // outer flex div
+        const containerParent = headingParent && headingParent.parentElement;
+        if (containerParent) {
+          const sub = containerParent.querySelector('p');
+          if (sub && sub.textContent.trim() === VENDOR_SUB) {
+            sub.textContent = NEW_SUB;
+            sub.dataset.krRenamed = 'true';
+          }
+        }
+        found = true;
+        break;  // there should be only one such heading
+      }
+      // Idempotency: if already renamed, skip
+      if (h.dataset.krRenamed === 'true') {
+        found = true;
+        break;
+      }
+    }
+    return found;
+  }
+
+  let _renameTimer = null;
+  function debouncedRename() {
+    if (_renameTimer) clearTimeout(_renameTimer);
+    _renameTimer = setTimeout(() => {
+      try { rename(); } catch (err) { console.warn('[KOMPAS planHeading] rename failed:', err); }
+    }, 80);
+  }
+
+  let _observer = null;
+  function start() {
+    if (_observer) return;  // already started
+
+    // Initial attempts (vendor mounts async)
+    let attempts = 0;
+    const initIv = setInterval(() => {
+      attempts++;
+      if (rename() || attempts > 60) clearInterval(initIv);
+    }, 200);
+
+    // Mutation observer: vendor re-renders when state changes (e.g. user
+    // clicks "Generovat strategii"). Watch for added H2 elements.
+    _observer = new MutationObserver((mutations) => {
+      // Cheap pre-check: only trigger if any added node could contain an H2
+      let needsCheck = false;
+      for (const m of mutations) {
+        for (const node of m.addedNodes) {
+          if (node.nodeType !== 1) continue;
+          if (node.tagName === 'H2' || (node.querySelector && node.querySelector('h2'))) {
+            needsCheck = true; break;
+          }
+        }
+        if (needsCheck) break;
+      }
+      if (needsCheck) debouncedRename();
+    });
+    _observer.observe(document.body, { childList: true, subtree: true });
+
+    // Periodic safety net (covers tab switch via React without DOM mutations
+    // that match our cheap pre-check)
+    setInterval(() => {
+      if (isPlanTabActive()) debouncedRename();
+    }, 1500);
+  }
+
+  function stop() {
+    if (_observer) {
+      _observer.disconnect();
+      _observer = null;
+    }
+    if (_renameTimer) {
+      clearTimeout(_renameTimer);
+      _renameTimer = null;
+    }
+  }
+
+  /* ─── Boot exposure ────────────────────────────────────────────────── */
+  window.KR = window.KR || {};
+  window.KR.planHeadingRename = {
+    start,
+    stop,
+    rename,
+    _version: '1.0.0'
+  };
+
+  // Auto-start on load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start);
+  } else {
+    start();
+  }
+
+  console.log(
+    '%c[KOMPAS] Plan tab heading rename loaded',
+    'background:#1B3A6B;color:#fff;padding:2px 8px;border-radius:4px;font-weight:600',
+    '— "90denní plán" → "Váš strategický plán"'
   );
 })();
 </script>
