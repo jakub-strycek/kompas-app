@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- KOMPAS™ build v7.0.0-alpha.26 (2026-05-06) — Path C source tree (v7-source). See LAYERS.md / FEATURES.md for architecture. -->
+<!-- KOMPAS™ build v7.0.0-alpha.30 (2026-05-06) — Path C source tree (v7-source). See LAYERS.md / FEATURES.md for architecture. -->
 <!-- KOMPAS v6.9.8: Data flow audit + enrichment. 1) Agresivní varianta rozšířena z 5 gap TITULŮ na plný kontext (brief, SWOT, segmenty, konkurenti, mezery, důkazy, mediální mix, reference k hlavní strategii) — není to už datově hladová kopie, ale plnohodnotná kontra-strategie. 2) briefAn (SWOT z úvodní analýzy briefu) nově vstupuje do yi.strategy jako samostatná sekce, plus instrukce v system-role aby AI explicitně vázala doporučení na silné/slabé stránky, příležitosti, rizika. 3) Media prompt (yi.media) rozšířen o demandPools, evidence a positioning — kanály se teď doporučují s vědomím segmentů, tónu značky a tržních důkazů. 4) Positioning framework prompt rozšířen o naše analyzované konkurenty, top mezery a segmenty — white space se identifikuje na základě REÁLNÉ competitive intel, ne jen archetypu. Žádné AI volání nebylo zjednodušeno — všechny předchozí datové vazby zachovány. -->
-<html lang="cs"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>KOMPAS™ v7.0.0-alpha.26 — Competitive Growth Operating System</title><link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%234f46e5'/><text x='16' y='22' text-anchor='middle' fill='white' font-size='18' font-weight='bold'>K</text></svg>"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}@keyframes spin{to{transform:rotate(360deg)}}</style></head><body><div id="root"></div><script type="module">
+<html lang="cs"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>KOMPAS™ v7.0.0-alpha.30 — Competitive Growth Operating System</title><link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%234f46e5'/><text x='16' y='22' text-anchor='middle' fill='white' font-size='18' font-weight='bold'>K</text></svg>"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}@keyframes spin{to{transform:rotate(360deg)}}</style></head><body><div id="root"></div><script type="module">
 (function(){const t=document.createElement("link").relList;if(t&&t.supports&&t.supports("modulepreload"))return;for(const i of document.querySelectorAll('link[rel="modulepreload"]'))r(i);new MutationObserver(i=>{for(const o of i)if(o.type==="childList")for(const a of o.addedNodes)a.tagName==="LINK"&&a.rel==="modulepreload"&&r(a)}).observe(document,{childList:!0,subtree:!0});function n(i){const o={};return i.integrity&&(o.integrity=i.integrity),i.referrerPolicy&&(o.referrerPolicy=i.referrerPolicy),i.crossOrigin==="use-credentials"?o.credentials="include":i.crossOrigin==="anonymous"?o.credentials="omit":o.credentials="same-origin",o}function r(i){if(i.ep)return;i.ep=!0;const o=n(i);fetch(i.href,o)}})();var Ls=typeof globalThis<"u"?globalThis:typeof window<"u"?window:typeof global<"u"?global:typeof self<"u"?self:{};function be(e){return e&&e.__esModule&&Object.prototype.hasOwnProperty.call(e,"default")?e.default:e}var Yx={exports:{}},iu={},Xx={exports:{}},se={};/**
  * @license React
  * react.production.min.js
@@ -24965,7 +24965,25 @@ if (document.readyState === 'loading') {
       const raw = localStorage.getItem('kompas_v5');
       const state = raw ? JSON.parse(raw) : {};
       state.strategy = state.strategy || {};
+      // Legacy sub-namespace (read by phases/07-pdf-v2-helpers-and-decision.js
+      // which uses state.strategy.decisionLayer.* in 8 places).
       state.strategy.decisionLayer = decisionLayer;
+      // alpha.28: ALSO spread top-level fields. DocumentPlan (alpha.15+),
+      // richContext (alpha.26), and QA gate (alpha.14) all read from
+      // state.strategy.executiveDecisionPage / managementAsk / mustWinBattles
+      // etc. directly. Without this dual-write the user clicked "Vygenerovat
+      // Decision Layer" but DocumentPlan still showed every section as MISSING
+      // because the data sat in a sub-namespace nobody else looked at.
+      const topLevelFields = [
+        'executiveDecisionPage', 'oneSentenceStrategy', 'strategicDiagnosis',
+        'growthThesis', 'marketTruth', 'strategicChoiceArchitecture',
+        'mustWinBattles', 'managementAsk'
+      ];
+      topLevelFields.forEach(k => {
+        if (decisionLayer && decisionLayer[k] != null) {
+          state.strategy[k] = decisionLayer[k];
+        }
+      });
       localStorage.setItem('kompas_v5', JSON.stringify(state));
       return true;
     } catch (e) {
@@ -27119,7 +27137,8 @@ if (document.readyState === 'loading') {
     // These render with Layer 1 data only — work even without API keys.
     // - Pure-render: Key Evidence Table (C33), Source Appendix (C36)
     // - AI-cached: Content Platform, Publishing Cadence, Creative Direction,
-    //   Landing Pages (conditional), SEO Strategy (conditional), PR Strategy
+    //   Landing Pages (conditional), SEO Strategy (conditional), CRM &
+    //   Retention (alpha.29), PR Strategy
     // - Cached AI sections show "Needs client input" placeholder if not generated
     if (window.KR.consultantSections && typeof window.KR.consultantSections.buildAllAsHtml === 'function') {
       try {
@@ -27130,6 +27149,20 @@ if (document.readyState === 'loading') {
         }
       } catch (e) {
         console.warn('[pdfMaster] consultantSections render failed:', e);
+      }
+    }
+
+    // alpha.29: C35 Win/Loss Battlecards. Layer 1 fallback derived from
+    // state.competitors[]. Only renders if at least one competitor exists.
+    // Auto-generates and caches at state.strategy.battlecards on first call.
+    if (window.KR.battlecards && typeof window.KR.battlecards.buildAsHtml === 'function') {
+      try {
+        const battlecardsHtml = window.KR.battlecards.buildAsHtml(state);
+        if (battlecardsHtml) {
+          sections.push('<div data-battlecards="true">' + battlecardsHtml + '</div>');
+        }
+      } catch (e) {
+        console.warn('[pdfMaster] battlecards render failed:', e);
       }
     }
 
@@ -27555,6 +27588,17 @@ if (document.readyState === 'loading') {
     });
   }
 
+  /* ─── B27: CRM & Retention (alpha.29) ─────────────────────────────── */
+  function buildCRMRetention(state) {
+    return renderAiSection(state, {
+      key: 'crmRetention',
+      eyebrow: 'Strategy Layer · 27',
+      title: 'CRM & Retention',
+      placeholderLabel: 'CRM & retention strategie zatím není vygenerována',
+      placeholderHint: 'Aplikace navrhne lifecycle journey, 4–6 retenčních programů, LTV strategii a měření na základě segmentů a positioning.'
+    });
+  }
+
   /* ─── B28: PR & Thought Leadership ────────────────────────────────── */
   function buildPRThoughtLeadership(state) {
     return renderAiSection(state, {
@@ -27566,15 +27610,17 @@ if (document.readyState === 'loading') {
     });
   }
 
-  /* ─── Concat: all 8 sections in brief order ───────────────────────── */
+  /* ─── Concat: all 9 sections in brief order ───────────────────────── */
   function buildAllAsHtml(state) {
-    // Order matches brief Section 4: B22 → B23 → B24 → B25 → B26 → B28 → C33 → C36
+    // alpha.29: order updated to include B27 CRM & Retention.
+    // Order matches brief Section 4: B22 → B23 → B24 → B25 → B26 → B27 → B28 → C33 → C36
     return [
       buildContentPlatform(state),
       buildPublishingCadence(state),
       buildCreativeDirection(state),
       buildLandingPageArchitecture(state),
       buildSEOStrategy(state),
+      buildCRMRetention(state),
       buildPRThoughtLeadership(state),
       buildKeyEvidenceTableV6(state),
       buildSourceAppendix(state)
@@ -27612,16 +27658,17 @@ if (document.readyState === 'loading') {
     buildCreativeDirection,
     buildLandingPageArchitecture,
     buildSEOStrategy,
+    buildCRMRetention,
     buildPRThoughtLeadership,
     buildAllAsHtml,
     diagnose,
-    _sectionsVersion: '1.0.0'
+    _sectionsVersion: '1.1.0'
   };
 
   console.log(
     '%c[KOMPAS] Consultant Sections loaded',
     'background:#1B3A6B;color:#fff;padding:2px 8px;border-radius:4px;font-weight:600',
-    '— window.KR.consultantSections ready (8 brief-parity sections)'
+    '— window.KR.consultantSections ready (9 brief-parity sections incl. B27 CRM)'
   );
 })();
 /* ========================================================================
@@ -27781,6 +27828,41 @@ if (document.readyState === 'loading') {
           '4–6 kanálů a jak je využít (national press, vertical, podcasty, LinkedIn thought leaders, ...).\n\n' +
           '## Měření\n' +
           '4–5 KPI (share of voice, kvalita zmínek, sentiment, organic backlinks, ...).\n\n' +
+          'KONTEXT:\n' + ctx;
+      }
+    },
+
+    /* alpha.29: B27 CRM & Retention — was orphan (DocumentPlan expected
+     * strategy.crmRetention but no module generated it). Adds 7th brief
+     * AI section parallel to B22-B26, B28. */
+    crmRetention: {
+      label: 'CRM & Retention',
+      buildPrompt: function (ctx) {
+        return 'Vytvoř sekci **CRM & Retention** podle struktury:\n\n' +
+          '## Retention diagnóza\n' +
+          'Krátká analýza (3–4 věty): jak vypadá segmentace existujících zákazníků, kde leží retence value, ' +
+          'kde značka ztrácí zákazníky a proč. Pokud chybí konkrétní data, formuluj jako pracovní hypotézu k validaci.\n\n' +
+          '## Lifecycle journey\n' +
+          'Mapa zákaznického lifecyclu po nákupu/první konverzi. Pro každou fázi (např. Onboarding, Aktivace, ' +
+          'Engagement, At-risk, Win-back):\n' +
+          '- Trigger / signál (co fázi spouští)\n' +
+          '- Cíl fáze (co od zákazníka chceme)\n' +
+          '- Klíčová zpráva (1 větou)\n' +
+          '- Kanál (e-mail, in-app, SMS, push, ...)\n' +
+          '- Frekvence kontaktu\n\n' +
+          '## 4–6 retenčních programů\n' +
+          'Pro každý:\n' +
+          '- Název programu\n' +
+          '- Cílová cohorta / segment\n' +
+          '- Mechanika (loyalty body, tier, win-back voucher, NPS follow-up, ...)\n' +
+          '- Očekávaný impact (hypotéza retention rate / LTV uplift — vždy s "pracovní hypotéza")\n' +
+          '- Závislost na datech / systémech\n\n' +
+          '## Lifetime value strategie\n' +
+          '3–4 odrážky: jak budovat LTV — cross-sell, up-sell, frekvence, premium tier, referral.\n\n' +
+          '## Měření\n' +
+          '5–6 KPI: retention rate by cohort, churn rate, NPS, LTV/CAC ratio, win-back conversion, repeat purchase rate.\n\n' +
+          '## Závěrečný so-what\n' +
+          'Jedna věta, jak CRM & Retention strategy slouží růstu (retention = páka pro zdravější CAC payback).\n\n' +
           'KONTEXT:\n' + ctx;
       }
     }
@@ -29850,10 +29932,25 @@ if (document.readyState === 'loading') {
   }
 
   function hasKPITree(state) {
-    const k = state && state.strategy && state.strategy.kpiTree;
-    if (!k) return false;
-    if (typeof k === 'object') return Object.keys(k).length > 0;
-    if (typeof k === 'string') return k.trim().length > 20;
+    // alpha.28: vendor "Generovat" button on Plan tab saves to state.strategy.kpis
+    // (array of {metric, current, target}), NOT state.strategy.kpiTree. The QA
+    // gate originally required kpiTree (legacy field) but no module generates
+    // it. Accept either: kpiTree (legacy/manual) or kpis (vendor-generated).
+    const s = state && state.strategy;
+    if (!s) return false;
+
+    const kt = s.kpiTree;
+    if (kt) {
+      if (typeof kt === 'object' && Object.keys(kt).length > 0) return true;
+      if (typeof kt === 'string' && kt.trim().length > 20) return true;
+    }
+
+    // Vendor-generated kpis array
+    const kpis = s.kpis;
+    if (Array.isArray(kpis) && kpis.length > 0) {
+      // Validate at least one entry has a metric+target shape
+      return kpis.some(k => k && (k.metric || k.name) && (k.target || k.value || k.current));
+    }
     return false;
   }
 
@@ -30081,14 +30178,18 @@ if (document.readyState === 'loading') {
         { id: 'cover',          briefId: 'A1',  title: 'Cover',                            statePath: 'brief.clientName' },
         { id: 'howToRead',      briefId: 'A2',  title: 'How to read this report',          static: true },
         { id: 'dataBase',       briefId: 'A3',  title: 'Data Base & Confidence',           statePath: 'evidence' },
-        { id: 'execDecision',   briefId: 'A4',  title: 'Executive Decision Page',          statePath: 'strategy.executiveDecisionPage' },
-        { id: 'oneSentence',    briefId: 'A5',  title: 'One-Sentence Strategy',            statePath: 'strategy.oneSentenceStrategy' },
-        { id: 'diagnosis',      briefId: 'A6',  title: 'Strategic Diagnosis',              statePath: 'strategy.strategicDiagnosis' },
-        { id: 'growthThesis',   briefId: 'A7',  title: 'Growth Thesis',                    statePath: 'strategy.growthThesis' },
-        { id: 'marketTruth',    briefId: 'A8',  title: 'Market Truth',                     statePath: 'strategy.marketTruth' },
-        { id: 'strategicChoice',briefId: 'A9',  title: 'Strategic Choice Architecture',    statePath: 'strategy.strategicChoiceArchitecture' },
-        { id: 'mustWin',        briefId: 'A10', title: 'Must-Win Battles',                 statePath: 'strategy.mustWinBattles' },
-        { id: 'managementAsk',  briefId: 'A11', title: 'Management Ask',                   statePath: 'strategy.managementAsk', qaCritical: true }
+        // alpha.27: A4-A11 are generated together by Phase 5 Decision Layer
+        // (KR.decisionLayer.generate). Marking with decisionLayerGenerator='all'
+        // shows a "Vygenerovat Decision Layer" button in detail panel that
+        // triggers all 8 sections at once. Same UX as packGenerator='all'.
+        { id: 'execDecision',   briefId: 'A4',  title: 'Executive Decision Page',          statePath: 'strategy.executiveDecisionPage',          decisionLayerGenerator: 'all' },
+        { id: 'oneSentence',    briefId: 'A5',  title: 'One-Sentence Strategy',            statePath: 'strategy.oneSentenceStrategy',            decisionLayerGenerator: 'all' },
+        { id: 'diagnosis',      briefId: 'A6',  title: 'Strategic Diagnosis',              statePath: 'strategy.strategicDiagnosis',             decisionLayerGenerator: 'all' },
+        { id: 'growthThesis',   briefId: 'A7',  title: 'Growth Thesis',                    statePath: 'strategy.growthThesis',                   decisionLayerGenerator: 'all' },
+        { id: 'marketTruth',    briefId: 'A8',  title: 'Market Truth',                     statePath: 'strategy.marketTruth',                    decisionLayerGenerator: 'all' },
+        { id: 'strategicChoice',briefId: 'A9',  title: 'Strategic Choice Architecture',    statePath: 'strategy.strategicChoiceArchitecture',    decisionLayerGenerator: 'all' },
+        { id: 'mustWin',        briefId: 'A10', title: 'Must-Win Battles',                 statePath: 'strategy.mustWinBattles',                 decisionLayerGenerator: 'all' },
+        { id: 'managementAsk',  briefId: 'A11', title: 'Management Ask',                   statePath: 'strategy.managementAsk', qaCritical: true, decisionLayerGenerator: 'all' }
       ]
     },
     strategy: {
@@ -30111,10 +30212,10 @@ if (document.readyState === 'loading') {
         { id: 'creativeDirection', briefId: 'B24', title: 'Creative Direction',           cachePath: 'strategy.consultantSections.creativeDirection', aiKey: 'creativeDirection' },
         { id: 'landingPages',      briefId: 'B25', title: 'Landing Page Architecture',    cachePath: 'strategy.consultantSections.landingPages',      aiKey: 'landingPages',      conditional: 'hasWeb' },
         { id: 'seoStrategy',       briefId: 'B26', title: 'SEO Strategy',                 cachePath: 'strategy.consultantSections.seoStrategy',       aiKey: 'seoStrategy',       conditional: 'hasWeb' },
-        { id: 'crmRetention',      briefId: 'B27', title: 'CRM & Retention',              statePath: 'strategy.crmRetention' },
+        { id: 'crmRetention',      briefId: 'B27', title: 'CRM & Retention',              cachePath: 'strategy.consultantSections.crmRetention',      aiKey: 'crmRetention' },
         { id: 'prStrategy',        briefId: 'B28', title: 'PR & Thought Leadership',      cachePath: 'strategy.consultantSections.prStrategy',        aiKey: 'prStrategy' },
         { id: 'experiments',       briefId: 'B29', title: 'Experiment Backlog',           statePath: 'strategy.experimentBacklog', qaCritical: true },
-        { id: 'kpiTree',           briefId: 'B30', title: 'KPI Tree',                     statePath: 'strategy.kpiTree',           qaCritical: true },
+        { id: 'kpiTree',           briefId: 'B30', title: 'KPI Tree',                     statePath: 'strategy.kpiTree', statePathFallback: 'strategy.kpis', qaCritical: true, kpiTreeGenerator: true },
         { id: 'risks',             briefId: 'B31', title: 'Risks & Guardrails',           statePath: 'strategy.risks',             qaCritical: true }
       ]
     },
@@ -30150,7 +30251,7 @@ if (document.readyState === 'loading') {
         { id: 'compProfiles', briefId: 'C32', title: 'Competitor Profiles',  statePath: 'competitors' },
         { id: 'evidenceTbl',  briefId: 'C33', title: 'Key Evidence Table',   statePath: 'evidence' },
         { id: 'gapAnalysis',  briefId: 'C34', title: 'Gap Analysis',         statePath: 'gaps' },
-        { id: 'battlecards',  briefId: 'C35', title: 'Win/Loss Battlecards', statePath: 'strategy.battlecards', layer2Output: 'battlecards' },
+        { id: 'battlecards',  briefId: 'C35', title: 'Win/Loss Battlecards', statePath: 'strategy.battlecards', statePathFallback: 'competitors' },
         { id: 'sourceAppx',   briefId: 'C36', title: 'Source Appendix',      statePath: 'evidence' },
         { id: 'methodology',  briefId: 'C37', title: 'Methodology',          static: true }
       ]
@@ -30235,6 +30336,28 @@ if (document.readyState === 'loading') {
     return Boolean(value);
   }
 
+  /* alpha.28: Check primary statePath, falling back to statePathFallback if
+   * primary is empty. Used for sections like B30 KPI Tree where the modern
+   * vendor saves to state.strategy.kpis but legacy code expected kpiTree. */
+  function isItemPopulated(state, item) {
+    if (!item.statePath) return false;
+    if (isPopulated(getByPath(state, item.statePath))) return true;
+    if (item.statePathFallback && isPopulated(getByPath(state, item.statePathFallback))) return true;
+    return false;
+  }
+
+  function getItemValue(state, item) {
+    // Returns the populated value from primary or fallback path (whichever wins)
+    if (!item.statePath) return null;
+    const v = getByPath(state, item.statePath);
+    if (isPopulated(v)) return v;
+    if (item.statePathFallback) {
+      const fb = getByPath(state, item.statePathFallback);
+      if (isPopulated(fb)) return fb;
+    }
+    return null;
+  }
+
   function hasWeb(state) {
     if (!state || !state.brief) return false;
     if (state.brief.hasWeb === true) return true;
@@ -30269,14 +30392,14 @@ if (document.readyState === 'loading') {
         return { kind: 'layer2', label: 'Layer 1+2', color: '#0891b2' };
       }
       // fallback: maybe Layer 1 has it directly
-      if (item.statePath && isPopulated(getByPath(state, item.statePath))) {
+      if (isItemPopulated(state, item)) {
         return { kind: 'layer1', label: 'Layer 1', color: '#059669' };
       }
       return { kind: 'missing', label: 'Missing', color: item.qaCritical ? '#dc2626' : '#9ca3af' };
     }
 
     // Layer 1 sections
-    if (item.statePath && isPopulated(getByPath(state, item.statePath))) {
+    if (isItemPopulated(state, item)) {
       return { kind: 'layer1', label: 'Layer 1', color: '#059669' };
     }
 
@@ -30436,13 +30559,13 @@ if (document.readyState === 'loading') {
         '</div>';
       }
     } else if (item.statePath) {
-      const value = getByPath(state, item.statePath);
-      if (isPopulated(value)) {
+      const value = getItemValue(state, item);
+      if (value != null) {
         let preview;
         if (typeof value === 'string') {
           preview = value.slice(0, 600) + (value.length > 600 ? '…' : '');
         } else if (Array.isArray(value)) {
-          preview = value.slice(0, 5).map(v => typeof v === 'string' ? v : (v.title || v.name || JSON.stringify(v).slice(0, 100))).join('\n• ');
+          preview = value.slice(0, 5).map(v => typeof v === 'string' ? v : (v.title || v.name || v.metric || JSON.stringify(v).slice(0, 100))).join('\n• ');
           preview = '• ' + preview;
         } else if (typeof value === 'object') {
           preview = Object.entries(value).slice(0, 8).map(([k, v]) =>
@@ -30519,6 +30642,58 @@ if (document.readyState === 'loading') {
         '</div>';
     }
 
+    // alpha.27: Decision Layer trigger button — runs Phase 5 KR.decisionLayer.generate
+    // which generates ALL 8 A4-A11 sections at once (executiveDecisionPage,
+    // oneSentenceStrategy, strategicDiagnosis, growthThesis, marketTruth,
+    // strategicChoiceArchitecture, mustWinBattles, managementAsk).
+    // Shown for any A4-A11 section with decisionLayerGenerator: 'all'.
+    let decisionLayerButton = '';
+    if (item.decisionLayerGenerator === 'all') {
+      const value = getByPath(state, item.statePath);
+      const hasDL = isPopulated(value);
+      const buttonLabel = hasDL ? 'Regenerovat Decision Layer' : 'Vygenerovat Decision Layer';
+      const buttonIcon = hasDL ? '↻' : '🧭';
+      decisionLayerButton =
+        '<button class="kr-doc-detail-dl" data-section-id="' + escHtml(item.id) + '" ' +
+          'style="margin-top:14px;padding:10px 14px;background:#dc2626;color:#fff;border:none;border-radius:8px;' +
+          'font-size:12.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px">' +
+          '<span>' + buttonIcon + '</span> ' + escHtml(buttonLabel) +
+        '</button>' +
+        '<div style="margin-top:6px;font-size:10.5px;color:#6b7280;line-height:1.4">' +
+          'Vygeneruje všech 8 sekcí strategického plánu (Executive Decision Page, One-Sentence Strategy, Strategic Diagnosis, Growth Thesis, Market Truth, Strategic Choice Architecture, Must-Win Battles, Management Ask) najednou přes window.KR.decisionLayer.' +
+        '</div>';
+    }
+
+    // alpha.27: Headlines trigger button — runs Phase 4 KR.headlines.generate
+    // which generates 11 consultant headlines + KPI Tree at once.
+    // Shown for sections with headlinesGenerator: 'all' (currently just B30).
+    // alpha.27 (deprecated in alpha.28): headlinesGenerator never wrote kpiTree.
+    // Removed; replaced by kpiTreeGenerator below for B30. Headlines themselves
+    // remain available via Extended Export Preview AI Enhancements tab.
+
+    // alpha.30: KPI Tree dedicated AI generator (B30). Produces hierarchical
+    // tree (north star → supporting metrics → leading indicators). Different
+    // from vendor strategy.kpis (flat array) and from consultantHeadlines.kpiTree
+    // (just meta-headline). This is the proper brief Section 30 deliverable.
+    let kpiTreeButton = '';
+    if (item.kpiTreeGenerator) {
+      const hasTree = isPopulated(getByPath(state, 'strategy.kpiTree'));
+      const hasFallback = isPopulated(getByPath(state, 'strategy.kpis'));
+      const buttonLabel = hasTree ? 'Regenerovat KPI Tree' : 'Vygenerovat KPI Tree';
+      const buttonIcon = hasTree ? '↻' : '✦';
+      kpiTreeButton =
+        '<button class="kr-doc-detail-kpi" data-section-id="' + escHtml(item.id) + '" ' +
+          'style="margin-top:14px;padding:10px 14px;background:#1B3A6B;color:#fff;border:none;border-radius:8px;' +
+          'font-size:12.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px">' +
+          '<span>' + buttonIcon + '</span> ' + escHtml(buttonLabel) +
+        '</button>' +
+        '<div style="margin-top:6px;font-size:10.5px;color:#6b7280;line-height:1.4">' +
+          (hasFallback && !hasTree
+            ? 'Aktuálně používáme flat list metrik z hlavní strategie (' + (getByPath(state, 'strategy.kpis') || []).length + ' KPI). KPI Tree generátor vytvoří hierarchii: 1 north star → 3-5 supporting metrics → 4-8 leading indicators.'
+            : 'Vygeneruje strukturovaný KPI Tree: north star, supporting metrics (Akvizice/Aktivace/Retence/Revenue/Referral) a leading indicators přes window.KR.kpiTree.') +
+        '</div>';
+    }
+
     return '<div style="font-size:10px;font-weight:700;color:#9ca3af;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px">' +
         escHtml(item.briefId) + ' · ' + renderBadge(status) +
       '</div>' +
@@ -30528,7 +30703,9 @@ if (document.readyState === 'loading') {
       body +
       regenButton +
       layer2Button +
-      packButton;
+      packButton +
+      decisionLayerButton +
+      kpiTreeButton;
   }
 
   function openDetail(sectionId) {
@@ -30673,6 +30850,71 @@ if (document.readyState === 'loading') {
         }
       });
     }
+
+    // alpha.27: Wire Decision Layer + Headlines trigger buttons. Both use the
+    // same generate-and-save pattern as Pack, just different KR.* modules.
+    function wireBulkGenerator(opts) {
+      const btn = panel.querySelector(opts.selector);
+      if (!btn) return;
+      btn.addEventListener('click', async () => {
+        const mod = window.KR[opts.moduleName];
+        if (!mod || typeof mod.generate !== 'function') {
+          btn.innerHTML = '<span>⚠</span> KR.' + opts.moduleName + ' není načteno';
+          btn.style.background = '#dc2626';
+          return;
+        }
+        const apiKey = state && state.apiKey;
+        if (!apiKey) {
+          btn.innerHTML = '<span>⚠</span> Chybí API klíč';
+          btn.style.background = '#dc2626';
+          return;
+        }
+        const origBg = btn.style.background;
+        btn.disabled = true;
+        btn.style.opacity = '0.6';
+        btn.innerHTML = '<span>⏳</span> Generuji ' + opts.label + '…';
+        try {
+          const result = await mod.generate({
+            apiKey: apiKey,
+            state: state,
+            onProgress: (text) => {
+              if (typeof text === 'string' && text.length > 50) {
+                btn.innerHTML = '<span>⏳</span> Streaming… ' + text.length + ' chars';
+              }
+            }
+          });
+          if (typeof mod.saveToState === 'function') mod.saveToState(result);
+          btn.innerHTML = '<span>✓</span> ' + opts.successLabel;
+          btn.style.background = '#059669';
+          setTimeout(() => {
+            openDetail(sectionId);
+            refreshOutline();
+          }, 1000);
+        } catch (e) {
+          console.error('[documentPlan] ' + opts.moduleName + ' generate failed:', e);
+          btn.innerHTML = '<span>⚠</span> ' + (e.message || '?').slice(0, 50);
+          btn.style.background = '#dc2626';
+          btn.disabled = false;
+          setTimeout(() => { btn.style.background = origBg; }, 4000);
+        }
+      });
+    }
+
+    wireBulkGenerator({
+      selector: '.kr-doc-detail-dl',
+      moduleName: 'decisionLayer',
+      label: 'Decision Layer (8 sekcí)',
+      successLabel: 'Decision Layer hotov (8/8)'
+    });
+
+    // alpha.30: KPI Tree dedicated generator (replaces obsolete .kr-doc-detail-hl
+    // wiring from alpha.27 which incorrectly mapped to headlines module).
+    wireBulkGenerator({
+      selector: '.kr-doc-detail-kpi',
+      moduleName: 'kpiTree',
+      label: 'KPI Tree (north star + supporting + leading)',
+      successLabel: 'KPI Tree vygenerován'
+    });
   }
 
   function closeDetail() {
@@ -31595,6 +31837,508 @@ if (document.readyState === 'loading') {
     '%c[KOMPAS] Plan tab heading rename loaded',
     'background:#1B3A6B;color:#fff;padding:2px 8px;border-radius:4px;font-weight:600',
     '— "90denní plán" → "Váš strategický plán"'
+  );
+})();
+/* ========================================================================
+   KOMPAS™ Battlecards — Phase 15 (alpha.29)
+   ════════════════════════════════════════════════════════════════════════
+   C35 Win/Loss Battlecards (brief Section 35) was an orphan: DocumentPlan
+   expected statePath='strategy.battlecards' but no module ever wrote there,
+   and the Layer 2 trigger button gracefully failed because window.KR.battlecards
+   didn't exist.
+
+   This module provides:
+     1. Layer 1 fallback — derives basic battlecards from state.competitors[]
+        without any API call. Per-competitor: positioning, scores, strengths,
+        weaknesses, recommended angle, when-not-to-fight.
+     2. Public API:
+          KR.battlecards.buildAsHtml(state) → HTML string for PDF
+          KR.battlecards.generate(state)    → derives + saves to state
+          KR.battlecards.diagnose(state)    → boolean ready check
+
+   STORAGE: state.strategy.battlecards = [{ competitorName, ... }, ...]
+
+   Per brief Section 35: "Pro každého hlavního konkurenta: proč ho zákazníci
+   volí, slabé místo, jak proti němu vyhrávat, doporučená taktika, kdy s ním
+   nebojovat."
+   ======================================================================== */
+(function () {
+  'use strict';
+
+  if (window.KR && window.KR.battlecards) {
+    console.warn('[KOMPAS] battlecards already loaded; skipping.');
+    return;
+  }
+
+  /* ─── Helpers ─────────────────────────────────────────────────────── */
+  function escHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function trunc(s, n) {
+    if (!s) return '';
+    s = String(s);
+    return s.length > n ? s.slice(0, n - 1) + '…' : s;
+  }
+
+  function avgScore(scores) {
+    if (!scores) return null;
+    const vals = ['needFit', 'reach', 'trust', 'friction']
+      .map(k => Number(scores[k]))
+      .filter(v => !isNaN(v) && v > 0);
+    if (!vals.length) return null;
+    return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length * 10) / 10;
+  }
+
+  /* ─── Per-competitor battlecard derivation (Layer 1, no AI) ────────── */
+  function deriveBattlecard(c) {
+    if (!c || !c.name) return null;
+
+    // Why customers choose them — derive from strengths or positioning
+    let whyCustomersChoose = '';
+    if (Array.isArray(c.strengths) && c.strengths.length) {
+      whyCustomersChoose = c.strengths.slice(0, 3).join(', ');
+    } else if (c.positioning) {
+      whyCustomersChoose = c.positioning;
+    } else {
+      whyCustomersChoose = 'Needs client input — analyzovat z dotazníků nebo customer interviews.';
+    }
+
+    // Weak spot — from weaknesses or blindspots
+    let weakSpot = '';
+    if (Array.isArray(c.weaknesses) && c.weaknesses.length) {
+      weakSpot = c.weaknesses.slice(0, 2).join('; ');
+    } else if (Array.isArray(c.blindspots) && c.blindspots.length) {
+      weakSpot = c.blindspots.slice(0, 2).join('; ');
+    } else {
+      const sc = c.scores || {};
+      const lowest = ['needFit', 'reach', 'trust', 'friction']
+        .map(k => ({ k, v: Number(sc[k]) }))
+        .filter(e => !isNaN(e.v) && e.v > 0)
+        .sort((a, b) => a.v - b.v)[0];
+      if (lowest) {
+        const labels = { needFit: 'Need-Fit', reach: 'Reach', trust: 'Trust', friction: 'Friction' };
+        weakSpot = 'Nejnižší C4 skóre v dimenzi ' + labels[lowest.k] + ' (' + lowest.v + '/10) — primární útočná plocha.';
+      } else {
+        weakSpot = 'Needs client input — chybí konkrétní data o slabinách.';
+      }
+    }
+
+    // How to win — derive from competitor type + their weakness
+    let howToWin = '';
+    const type = (c.type || '').toLowerCase();
+    if (type === 'direct') {
+      howToWin = 'Přímá konfrontace — zaútočit na slabé místo (' + trunc(weakSpot, 60) + '). Vlastní pozice musí explicitně řešit to, co konkurent ignoruje.';
+    } else if (type === 'indirect') {
+      howToWin = 'Reframing — místo srovnávání kategorie ukázat, proč status quo (jejich řešení) zákazníkovi nestačí. Vyprávění "co dělají špatně" funguje lépe než "co děláme líp".';
+    } else if (type === 'status_quo' || type === 'statusquo') {
+      howToWin = 'Edukace — zákazník nemusí vědět, že problém má. Investice do problem-aware contentu (B22 content platform) výnosnější než feature porovnání.';
+    } else {
+      howToWin = 'Reframovat na vlastní silné místo — nevést bitvu na cizí terén.';
+    }
+
+    // Recommended tactic — short actionable
+    const tactics = [];
+    if (Array.isArray(c.strengths) && c.strengths.length > 2) {
+      tactics.push('Nesoutěžit na "' + trunc(c.strengths[0], 30) + '" — to je jejich pevná pozice.');
+    }
+    tactics.push('Zaměřit messaging na ' + (weakSpot ? trunc(weakSpot.split(/[;.]/)[0], 50) : 'unique angle'));
+    if (c.positioning) {
+      tactics.push('Vyhnout se kategoriální válce — jejich positioning ("' + trunc(c.positioning, 40) + '") nepřebíjet, ale obejít.');
+    }
+
+    // When not to fight — derive from high scores
+    let whenNotToFight = '';
+    const sc = c.scores || {};
+    const reach = Number(sc.reach);
+    const trust = Number(sc.trust);
+    if (!isNaN(reach) && reach >= 8) {
+      whenNotToFight = 'V kanálech, kde mají dominantní reach (' + reach + '/10) — paid akvizice tady spaluje rozpočet bez payback.';
+    } else if (!isNaN(trust) && trust >= 8) {
+      whenNotToFight = 'V segmentech kde mají vysokou důvěru (Trust ' + trust + '/10) — head-on srovnání je riziko, lépe odlišit jiným positioningem.';
+    } else if (Array.isArray(c.strengths) && c.strengths.length) {
+      whenNotToFight = 'Na poli "' + trunc(c.strengths[0], 40) + '" — to je jejich moat, frontální útok je drahý a nepřesvědčivý.';
+    } else {
+      whenNotToFight = 'Needs client input — zvážit, kde je jejich obrana neprolomitelná a vyhnout se.';
+    }
+
+    return {
+      competitorName: c.name,
+      type: c.type || 'unknown',
+      positioning: c.positioning || '',
+      avgScore: avgScore(c.scores),
+      whyCustomersChoose: whyCustomersChoose,
+      weakSpot: weakSpot,
+      howToWin: howToWin,
+      recommendedTactics: tactics,
+      whenNotToFight: whenNotToFight,
+      _derivedFrom: 'Layer 1 (bez AI) — odvozeno z state.competitors. Pro AI verzi spustit Research API.'
+    };
+  }
+
+  /* ─── Generate: derive battlecards for all main competitors ────────── */
+  function generate(state) {
+    state = state || (window.KR.appState && window.KR.appState.getKompas()) || {};
+    const competitors = state.competitors || [];
+    if (!competitors.length) return [];
+
+    // Take top 5 main competitors (prefer direct + indirect over status_quo)
+    const ranked = competitors.slice().sort((a, b) => {
+      const order = { direct: 0, indirect: 1, status_quo: 2, statusquo: 2 };
+      const ao = order[(a.type || '').toLowerCase()] != null ? order[(a.type || '').toLowerCase()] : 3;
+      const bo = order[(b.type || '').toLowerCase()] != null ? order[(b.type || '').toLowerCase()] : 3;
+      return ao - bo;
+    });
+
+    const battlecards = ranked.slice(0, 5).map(deriveBattlecard).filter(b => b);
+
+    // Save to state
+    try {
+      const raw = localStorage.getItem('kompas_v5');
+      const s = raw ? JSON.parse(raw) : {};
+      s.strategy = s.strategy || {};
+      s.strategy.battlecards = battlecards;
+      localStorage.setItem('kompas_v5', JSON.stringify(s));
+    } catch (e) {
+      console.warn('[battlecards] saveToState failed:', e);
+    }
+
+    return battlecards;
+  }
+
+  /* ─── Render as HTML for PDF inclusion ─────────────────────────────── */
+  function buildAsHtml(state) {
+    state = state || (window.KR.appState && window.KR.appState.getKompas()) || {};
+
+    // Use existing battlecards if cached, otherwise derive on-the-fly
+    let cards = (state.strategy && state.strategy.battlecards) || null;
+    if (!Array.isArray(cards) || !cards.length) {
+      cards = generate(state);
+    }
+    if (!cards.length) {
+      return '';  // No competitors, skip section
+    }
+
+    let html = '<section style="margin:32px 0;page-break-inside:avoid">' +
+      '<div style="font-size:10px;font-weight:700;color:#7c3aed;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px">' +
+        'Evidence Layer · 35' +
+      '</div>' +
+      '<h2 style="font-size:22px;font-weight:700;color:#1a1a2e;margin:0 0 6px;letter-spacing:-0.01em">' +
+        'Win/Loss Battlecards' +
+      '</h2>' +
+      '<p style="font-size:13px;color:#6b7280;margin:0 0 18px;line-height:1.5">' +
+        'Pro každého hlavního konkurenta: proč ho zákazníci volí, slabé místo, jak proti němu vyhrávat, ' +
+        'doporučená taktika, kdy s ním nebojovat. Layer 1 verze odvozena z dat o konkurentech.' +
+      '</p>';
+
+    cards.forEach(c => {
+      const typeLabel = {
+        direct: 'Přímý konkurent',
+        indirect: 'Nepřímý konkurent',
+        status_quo: 'Status quo',
+        statusquo: 'Status quo'
+      }[(c.type || '').toLowerCase()] || c.type;
+
+      const scoreBadge = c.avgScore != null
+        ? '<span style="background:#f3f4f6;color:#1a1a2e;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600">C4 ø ' + escHtml(String(c.avgScore)) + '/10</span>'
+        : '';
+
+      html += '<div style="margin:18px 0;padding:18px 22px;background:#fafafa;border:1px solid #e5e7eb;border-radius:10px;page-break-inside:avoid">' +
+        '<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">' +
+          '<div>' +
+            '<h3 style="font-size:18px;font-weight:700;color:#1a1a2e;margin:0 0 4px">' + escHtml(c.competitorName) + '</h3>' +
+            (typeLabel ? '<div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:0.06em;font-weight:600">' + escHtml(typeLabel) + '</div>' : '') +
+          '</div>' +
+          scoreBadge +
+        '</div>' +
+
+        (c.positioning ? '<div style="margin-bottom:14px;padding:10px 12px;background:#fff;border-left:3px solid #7c3aed;font-size:12.5px;color:#3d3d56;line-height:1.5">' +
+          '<strong style="color:#7c3aed">Pozicování:</strong> ' + escHtml(c.positioning) +
+        '</div>' : '') +
+
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">' +
+          '<div style="padding:12px 14px;background:#ecfdf5;border-left:3px solid #059669;border-radius:6px">' +
+            '<div style="font-size:9px;font-weight:700;color:#059669;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px">PROČ HO ZÁKAZNÍCI VOLÍ</div>' +
+            '<div style="font-size:12.5px;color:#065f46;line-height:1.5">' + escHtml(c.whyCustomersChoose) + '</div>' +
+          '</div>' +
+          '<div style="padding:12px 14px;background:#fef2f2;border-left:3px solid #dc2626;border-radius:6px">' +
+            '<div style="font-size:9px;font-weight:700;color:#dc2626;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px">SLABÉ MÍSTO</div>' +
+            '<div style="font-size:12.5px;color:#7f1d1d;line-height:1.5">' + escHtml(c.weakSpot) + '</div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div style="margin-bottom:14px;padding:12px 14px;background:#eff6ff;border-left:3px solid #2563eb;border-radius:6px">' +
+          '<div style="font-size:9px;font-weight:700;color:#2563eb;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px">JAK PROTI NĚMU VYHRÁVAT</div>' +
+          '<div style="font-size:12.5px;color:#1e3a8a;line-height:1.5">' + escHtml(c.howToWin) + '</div>' +
+        '</div>' +
+
+        (c.recommendedTactics && c.recommendedTactics.length ? '<div style="margin-bottom:14px">' +
+          '<div style="font-size:9px;font-weight:700;color:#6b7280;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px">DOPORUČENÉ TAKTIKY</div>' +
+          '<ul style="margin:0;padding-left:18px;font-size:12.5px;color:#3d3d56;line-height:1.6">' +
+            c.recommendedTactics.map(t => '<li style="margin-bottom:3px">' + escHtml(t) + '</li>').join('') +
+          '</ul>' +
+        '</div>' : '') +
+
+        '<div style="padding:10px 14px;background:#fffbeb;border-left:3px solid #d97706;border-radius:6px">' +
+          '<div style="font-size:9px;font-weight:700;color:#d97706;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px">⚠ KDY S NÍM NEBOJOVAT</div>' +
+          '<div style="font-size:12.5px;color:#78350f;line-height:1.5">' + escHtml(c.whenNotToFight) + '</div>' +
+        '</div>' +
+      '</div>';
+    });
+
+    html += '</section>';
+    return html;
+  }
+
+  /* ─── Diagnose: ready check for QA gate / DocumentPlan ─────────────── */
+  function diagnose(state) {
+    state = state || (window.KR.appState && window.KR.appState.getKompas()) || {};
+    const cards = (state.strategy && state.strategy.battlecards) || [];
+    const competitors = state.competitors || [];
+    return {
+      ready: cards.length > 0 || competitors.length > 0,  // can derive on-demand
+      cached: cards.length > 0,
+      cacheCount: cards.length,
+      derivableFrom: competitors.length
+    };
+  }
+
+  /* ─── Public API ──────────────────────────────────────────────────── */
+  window.KR = window.KR || {};
+  window.KR.battlecards = {
+    generate,
+    buildAsHtml,
+    diagnose,
+    deriveBattlecard,
+    _battlecardsVersion: '1.0.0'
+  };
+
+  console.log(
+    '%c[KOMPAS] Battlecards loaded',
+    'background:#7c3aed;color:#fff;padding:2px 8px;border-radius:4px;font-weight:600',
+    '— window.KR.battlecards ready (Layer 1 derivation from state.competitors)'
+  );
+})();
+/* ========================================================================
+   KOMPAS™ KPI Tree Generator — Phase 16 (alpha.30)
+   ════════════════════════════════════════════════════════════════════════
+   B30 KPI Tree (brief Section 30) was previously orphan or fallback-only:
+   - alpha.28 added fallback to state.strategy.kpis (vendor flat array)
+   - But brief Section 30 specifies KPI Tree as HIERARCHICAL: north star →
+     supporting metrics → leading indicators
+   - alpha.30 adds a dedicated AI generator that produces the proper tree
+     shape, callable from B30 detail panel.
+
+   API:
+     KR.kpiTree.generate({ apiKey, state, onProgress }) → kpi tree object
+     KR.kpiTree.saveToState(kpiTree)                    → persists to state
+     KR.kpiTree.PROMPT_SYSTEM, KR.kpiTree.PROMPT_USER   → exposed for inspection
+
+   STORAGE: state.strategy.kpiTree = {
+     northStar: { metric, current, target, rationale, timeframe },
+     supportingMetrics: [{ metric, current, target, rationale, dimension }, ...],
+     leadingIndicators: [{ metric, why, target, dimension }, ...],
+     dataGaps: ['<missing data points to fill>', ...],
+     measurementPlan: '<how to track this>',
+     _generatedAt: ISO date
+   }
+   ======================================================================== */
+(function () {
+  'use strict';
+
+  if (window.KR && window.KR.kpiTree && typeof window.KR.kpiTree.generate === 'function') {
+    console.warn('[KOMPAS] kpiTree generator already loaded; skipping.');
+    return;
+  }
+
+  const PROMPT_SYSTEM =
+    'Jsi senior strategy consultant. Vytváříš KPI Tree pro board-ready growth strategii.\n\n' +
+    'PRAVIDLA:\n' +
+    '- Žádný AI procesní jazyk.\n' +
+    '- Konkrétní metriky, ne obecné fráze. "Conversion rate" je špatně, "Conversion rate na žádost o úvěr" je dobře.\n' +
+    '- Rozlišuj fakta / hypotézy. Target hodnoty bez evidence označ jako pracovní hypotézu.\n' +
+    '- KPI Tree je HIERARCHICKÝ: 1 north star → 3-5 supporting metrics → 4-8 leading indicators.\n' +
+    '- Leading indicators musí měřit BEHAVIORS které vedou k supporting metrics, ne sami sebe.\n' +
+    '- Pokud chybí data o aktuálním stavu, označ jako "Needs client input".\n' +
+    '- Píšeš v češtině.';
+
+  function PROMPT_USER(state) {
+    const rc = (window.KR && window.KR.richContext);
+    const contextDump = rc
+      ? rc.buildFull(state, { compact: true, maxCompetitors: 4, maxEvidence: 6, maxGaps: 4 })
+      : '═══ KONTEXT ═══\nKlient: ' + ((state.brief && state.brief.clientName) || '?');
+
+    return contextDump + '\n\n═══ ÚKOL ═══\n' +
+      'Vytvoř KPI Tree pro tuto growth strategii.\n\n' +
+      'STRUKTURA:\n' +
+      '1. **North Star** — JEDNA metrika, která reprezentuje celkový business success. ' +
+      'Měla by korelovat s revenue/profit a byt měřitelná měsíčně.\n' +
+      '2. **Supporting Metrics (3-5)** — rozkládají north star na hlavní páky. ' +
+      'Pokrývají dimenze: Akvizice, Aktivace, Retence, Revenue, Referral (AARRR-like).\n' +
+      '3. **Leading Indicators (4-8)** — early signals, predikují supporting metrics. ' +
+      'Behaviorální nebo engagement metriky.\n\n' +
+      'Vrať POUZE tento JSON:\n\n' +
+      '{\n' +
+      '  "northStar": {\n' +
+      '    "metric": "konkrétní metrika (např. Aktivní uživatelé s alespoň 1 transakcí měsíčně)",\n' +
+      '    "current": "číslo nebo \'Needs client input\'",\n' +
+      '    "target": "12-měsíční cíl + jednotka",\n' +
+      '    "rationale": "proč právě tato metrika je north star (1-2 věty)",\n' +
+      '    "timeframe": "12 měsíců"\n' +
+      '  },\n' +
+      '  "supportingMetrics": [\n' +
+      '    {\n' +
+      '      "metric": "konkrétní metrika",\n' +
+      '      "dimension": "Akvizice|Aktivace|Retence|Revenue|Referral",\n' +
+      '      "current": "číslo nebo \'Needs client input\'",\n' +
+      '      "target": "cíl + jednotka",\n' +
+      '      "rationale": "vazba na north star (1 věta)"\n' +
+      '    }\n' +
+      '  ],\n' +
+      '  "leadingIndicators": [\n' +
+      '    {\n' +
+      '      "metric": "behaviorální/engagement metrika",\n' +
+      '      "dimension": "vazba na kterou supporting metric",\n' +
+      '      "target": "early signal threshold",\n' +
+      '      "why": "proč je to leading indicator pro supporting metric"\n' +
+      '    }\n' +
+      '  ],\n' +
+      '  "dataGaps": [\n' +
+      '    "Jaká data klient potřebuje doplnit pro tracking (např. \'Customer cohort tracking od měsíc 0\')"\n' +
+      '  ],\n' +
+      '  "measurementPlan": "Krátký plán implementace měření — kde se data sbírají, frekvence reportingu, kdo vlastní (1-2 věty)"\n' +
+      '}\n\n' +
+      'PŘÍKLAD KVALITY:\n' +
+      'BAD (vágní): { "metric": "Conversion rate" }\n' +
+      'GOOD (konkrétní): { "metric": "Conversion rate na podání žádosti o úvěr (mobile)" }\n\n' +
+      'BAD (lagging): leading indicator = "Revenue per customer"\n' +
+      'GOOD (leading): "Aplikace dokončená do 5 min" → predikuje activation rate → predikuje revenue';
+  }
+
+  /* ─── Helpers (reused from existing modules) ──────────────────────── */
+  async function callAnthropic(apiKey, system, user, onProgress) {
+    onProgress = onProgress || function () {};
+    const url = 'https://api.anthropic.com/v1/messages';
+    const body = {
+      model: 'claude-opus-4-7',
+      max_tokens: 3500,
+      system: system,
+      messages: [{ role: 'user', content: user }],
+      stream: true
+    };
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify(body)
+    });
+    if (!resp.ok) {
+      const errText = await resp.text();
+      throw new Error('Anthropic API ' + resp.status + ': ' + errText.slice(0, 200));
+    }
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let full = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value);
+      // SSE parse
+      chunk.split('\n').forEach(line => {
+        if (!line.startsWith('data:')) return;
+        try {
+          const json = JSON.parse(line.slice(5).trim());
+          if (json.type === 'content_block_delta' && json.delta && json.delta.text) {
+            full += json.delta.text;
+            onProgress(full);
+          }
+        } catch {}
+      });
+    }
+    return full;
+  }
+
+  function extractJSON(raw) {
+    if (!raw) return null;
+    // Strip code fences
+    raw = raw.replace(/```json\s*/g, '').replace(/```\s*/g, '');
+    // Find outermost { ... }
+    const start = raw.indexOf('{');
+    const end = raw.lastIndexOf('}');
+    if (start < 0 || end < start) return null;
+    try {
+      return JSON.parse(raw.slice(start, end + 1));
+    } catch (e) {
+      console.warn('[kpiTree] JSON parse failed:', e);
+      return null;
+    }
+  }
+
+  /* ─── Generate ─────────────────────────────────────────────────────── */
+  async function generate(opts) {
+    opts = opts || {};
+    const apiKey = opts.apiKey;
+    const state = opts.state;
+    const onProgress = opts.onProgress || function () {};
+
+    if (!apiKey) throw new Error('API klíč je nutný.');
+    if (!state) throw new Error('State je prázdný.');
+
+    onProgress('Generuji KPI Tree...');
+    const raw = await callAnthropic(apiKey, PROMPT_SYSTEM, PROMPT_USER(state), onProgress);
+    const parsed = extractJSON(raw);
+    if (!parsed) throw new Error('AI nevrátila validní JSON.');
+
+    // Validate shape
+    if (!parsed.northStar || !parsed.northStar.metric) {
+      throw new Error('KPI Tree chybí northStar.metric');
+    }
+    if (!Array.isArray(parsed.supportingMetrics) || parsed.supportingMetrics.length === 0) {
+      throw new Error('KPI Tree chybí supportingMetrics');
+    }
+    if (!Array.isArray(parsed.leadingIndicators)) {
+      parsed.leadingIndicators = [];
+    }
+
+    parsed._generatedAt = new Date().toISOString();
+    return parsed;
+  }
+
+  /* ─── Persist ──────────────────────────────────────────────────────── */
+  function saveToState(kpiTree) {
+    try {
+      const raw = localStorage.getItem('kompas_v5');
+      const state = raw ? JSON.parse(raw) : {};
+      state.strategy = state.strategy || {};
+      state.strategy.kpiTree = kpiTree;
+      localStorage.setItem('kompas_v5', JSON.stringify(state));
+      return true;
+    } catch (e) {
+      console.error('[kpiTree] saveToState failed:', e);
+      return false;
+    }
+  }
+
+  /* ─── Public API ──────────────────────────────────────────────────── */
+  window.KR = window.KR || {};
+  window.KR.kpiTree = {
+    generate,
+    saveToState,
+    PROMPT_SYSTEM,
+    PROMPT_USER,
+    _kpiTreeVersion: '1.0.0'
+  };
+
+  console.log(
+    '%c[KOMPAS] KPI Tree Generator loaded',
+    'background:#1B3A6B;color:#fff;padding:2px 8px;border-radius:4px;font-weight:600',
+    '— window.KR.kpiTree ready (north star → supporting → leading)'
   );
 })();
 </script>
