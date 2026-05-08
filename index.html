@@ -24117,6 +24117,8 @@ if (document.readyState === 'loading') {
     // Wire up
     const close = function () {
       if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+      // alpha.33: cleanup keydown listener (was only removed on ESC press, leaking on click-close)
+      try { document.removeEventListener('keydown', escHandler); } catch (_) {}
     };
 
     document.getElementById('kqa-close').onclick = function () { close(); onCancel(); };
@@ -29548,6 +29550,8 @@ if (document.readyState === 'loading') {
 
     const close = function () {
       if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+      // alpha.33: cleanup keydown listener (was only removed on ESC press, leaking on click-close)
+      try { document.removeEventListener('keydown', escHandler); } catch (_) {}
     };
 
     document.getElementById('kqa-close').onclick = function () { close(); onCancel(); };
@@ -30500,21 +30504,25 @@ if (document.readyState === 'loading') {
     if (!result || !result.checks) return result;
 
     /* ─── Replace check #9 (missing_management_ask) ───────────────── */
+    /* alpha.33 fix: downgrade from 'critical' to 'warning'. These 4 missing-
+     * section checks (managementAsk, risks, experimentBacklog, kpiTree) flagged
+     * Layer 1 users (who hadn't yet clicked AI generate buttons) as "Export
+     * blokován". Per Jakub's mental model: AI baseline is valid, missing AI-
+     * enriched sections shouldn't block export — they should nudge user to
+     * generate them. PDF will use placeholders if missing, which is fine.
+     */
     if (!hasManagementAsk(state)) {
-      // Override with state-based truth: section is genuinely missing
       const issue = makeIssue(
         'missing-management-ask',
-        'critical',
-        'Dokument neobsahuje sekci "Management Ask" (state.strategy.managementAsk je prázdné)',
-        'Brief Section 11: seniorní dokument MUSÍ mít sekci "Co má vedení schválit". Vygenerujte přes Decision Layer (Phase 3) nebo doplňte ručně.',
+        'warning',
+        'Sekce "Management Ask" zatím nebyla vygenerována — PDF zobrazí placeholder',
+        'Doporučeno: vygenerujte celý Decision Layer přes Plan tab → A4-A11 → "🧭 Vygenerovat Decision Layer" (8 sekcí najednou, ~30s).',
         'Decision Layer'
       );
       result.checks.missing_management_ask = { ok: false, count: 1, items: [issue] };
-      // Replace any false positives in issues array
       result.issues = result.issues.filter(i => i.id !== 'missing-management-ask');
       result.issues.push(issue);
     } else {
-      // Real positive: state has managementAsk → check passes
       result.checks.missing_management_ask = { ok: true, count: 0, items: [] };
       result.issues = result.issues.filter(i => i.id !== 'missing-management-ask');
     }
@@ -30523,9 +30531,9 @@ if (document.readyState === 'loading') {
     if (!hasRisks(state)) {
       const issue = makeIssue(
         'missing-risks',
-        'critical',
-        'Dokument neobsahuje Risks & Guardrails (state.strategy.risks je prázdné)',
-        'Brief Section 31: každý seniorní dokument musí mít sekci rizik s typy: regulační, reputační, operativní, datové, kanibalizační, kreativní, měřicí, makro.',
+        'warning',
+        'Sekce "Risks & Guardrails" zatím nebyla vyplněna — PDF zobrazí placeholder',
+        'Volitelné: doplňte 3+ rizika v Plan tab → B31, nebo nechte AI navrhnout přes Strategy v2 generation.',
         'Risks & Guardrails'
       );
       result.checks.missing_risks = { ok: false, count: 1, items: [issue] };
@@ -30537,8 +30545,8 @@ if (document.readyState === 'loading') {
         const issue = makeIssue(
           'insufficient-risks',
           'warning',
-          'Pouze ' + n + ' rizika identifikována',
-          'Brief Section 31 doporučuje 3+ kategorií rizik. Doplňte regulační, reputační, operativní apod.',
+          'Pouze ' + n + ' rizika identifikována (doporučeno 3+)',
+          'Doplňte regulační, reputační, operativní, datové apod. v Plan tab → B31.',
           'Risks & Guardrails'
         );
         result.checks.missing_risks = { ok: false, count: 1, items: [issue] };
@@ -30554,9 +30562,9 @@ if (document.readyState === 'loading') {
     if (!hasExperiments(state)) {
       const issue = makeIssue(
         'missing-experiments',
-        'critical',
-        'Dokument neobsahuje Experiment Backlog (state.strategy.experimentBacklog je prázdné)',
-        'Brief Section 29: dokument musí mít experimenty s hypotézami, testy, metrikami a rozhodovacími pravidly.',
+        'warning',
+        'Experiment Backlog zatím nebyl vyplněn — PDF zobrazí placeholder',
+        'Volitelné: doplňte 3+ experimentů v Plan tab → B29 s hypotézou + metrikou.',
         'Experiment Backlog'
       );
       result.checks.missing_experiments = { ok: false, count: 1, items: [issue] };
@@ -30568,8 +30576,8 @@ if (document.readyState === 'loading') {
         const issue = makeIssue(
           'insufficient-experiments',
           'warning',
-          'Pouze ' + n + ' experimentů',
-          'Brief doporučuje 3+ experimentů pro validaci klíčových hypotéz.',
+          'Pouze ' + n + ' experimentů (doporučeno 3+)',
+          'Doplňte další experimenty pro validaci hypotéz.',
           'Experiment Backlog'
         );
         result.checks.missing_experiments = { ok: false, count: 1, items: [issue] };
@@ -30585,9 +30593,9 @@ if (document.readyState === 'loading') {
     if (!hasKPITree(state)) {
       const issue = makeIssue(
         'missing-kpi-tree',
-        'critical',
-        'Dokument neobsahuje KPI Tree (state.strategy.kpiTree je prázdné)',
-        'Brief Section 30: dokument musí mít KPI strom s North Star metric a vrstvami (brand, traffic, engagement, leads, approval, economics, retention, reputation).',
+        'warning',
+        'KPI Tree zatím nebyl vygenerován — PDF zobrazí pouze flat KPI list',
+        'Doporučeno: vygenerujte KPI Tree přes Plan tab → B30 → "✦ Vygenerovat KPI Tree" (~30s, hierarchická struktura: north star → supporting → leading).',
         'KPI Tree'
       );
       result.checks.missing_kpi_tree = { ok: false, count: 1, items: [issue] };
@@ -30700,7 +30708,7 @@ if (document.readyState === 'loading') {
         { id: 'marketTruth',    briefId: 'A8',  title: 'Market Truth',                     statePath: 'strategy.marketTruth',                    decisionLayerGenerator: 'all' },
         { id: 'strategicChoice',briefId: 'A9',  title: 'Strategic Choice Architecture',    statePath: 'strategy.strategicChoiceArchitecture',    decisionLayerGenerator: 'all' },
         { id: 'mustWin',        briefId: 'A10', title: 'Must-Win Battles',                 statePath: 'strategy.mustWinBattles',                 decisionLayerGenerator: 'all' },
-        { id: 'managementAsk',  briefId: 'A11', title: 'Management Ask',                   statePath: 'strategy.managementAsk', qaCritical: true, decisionLayerGenerator: 'all' }
+        { id: 'managementAsk',  briefId: 'A11', title: 'Management Ask',                   statePath: 'strategy.managementAsk', qaRecommended: true, decisionLayerGenerator: 'all' }
       ]
     },
     strategy: {
@@ -30725,9 +30733,9 @@ if (document.readyState === 'loading') {
         { id: 'seoStrategy',       briefId: 'B26', title: 'SEO Strategy',                 cachePath: 'strategy.consultantSections.seoStrategy',       aiKey: 'seoStrategy',       conditional: 'hasWeb' },
         { id: 'crmRetention',      briefId: 'B27', title: 'CRM & Retention',              cachePath: 'strategy.consultantSections.crmRetention',      aiKey: 'crmRetention' },
         { id: 'prStrategy',        briefId: 'B28', title: 'PR & Thought Leadership',      cachePath: 'strategy.consultantSections.prStrategy',        aiKey: 'prStrategy' },
-        { id: 'experiments',       briefId: 'B29', title: 'Experiment Backlog',           statePath: 'strategy.experimentBacklog', qaCritical: true },
-        { id: 'kpiTree',           briefId: 'B30', title: 'KPI Tree',                     statePath: 'strategy.kpiTree', statePathFallback: 'strategy.kpis', qaCritical: true, kpiTreeGenerator: true },
-        { id: 'risks',             briefId: 'B31', title: 'Risks & Guardrails',           statePath: 'strategy.risks',             qaCritical: true }
+        { id: 'experiments',       briefId: 'B29', title: 'Experiment Backlog',           statePath: 'strategy.experimentBacklog', qaRecommended: true },
+        { id: 'kpiTree',           briefId: 'B30', title: 'KPI Tree',                     statePath: 'strategy.kpiTree', statePathFallback: 'strategy.kpis', qaRecommended: true, kpiTreeGenerator: true },
+        { id: 'risks',             briefId: 'B31', title: 'Risks & Guardrails',           statePath: 'strategy.risks',             qaRecommended: true }
       ]
     },
     pack: {
@@ -30906,7 +30914,7 @@ if (document.readyState === 'loading') {
       if (isItemPopulated(state, item)) {
         return { kind: 'layer1', label: 'Layer 1', color: '#059669' };
       }
-      return { kind: 'missing', label: 'Missing', color: item.qaCritical ? '#dc2626' : '#9ca3af' };
+      return { kind: 'missing', label: 'Missing', color: item.qaRecommended ? '#d97706' : '#9ca3af' };
     }
 
     // Layer 1 sections
@@ -30914,7 +30922,7 @@ if (document.readyState === 'loading') {
       return { kind: 'layer1', label: 'Layer 1', color: '#059669' };
     }
 
-    return { kind: 'missing', label: item.qaCritical ? 'Required, missing' : 'Missing', color: item.qaCritical ? '#dc2626' : '#9ca3af' };
+    return { kind: 'missing', label: item.qaRecommended ? 'Recommended, missing' : 'Missing', color: item.qaRecommended ? '#d97706' : '#9ca3af' };
   }
 
   /* ─── Diagnose: full status of all sections ──────────────────────── */
@@ -30934,8 +30942,10 @@ if (document.readyState === 'loading') {
         missing: 0,
         skipped: 0,
         static: 0,
-        qaCritical: 0,
-        qaCriticalMissing: 0
+        qaCritical: 0,            // alpha.33: kept for backward-compat (always 0 now)
+        qaCriticalMissing: 0,     // alpha.33: kept for backward-compat (always 0 now)
+        qaRecommended: 0,
+        qaRecommendedMissing: 0
       }
     };
 
@@ -30947,9 +30957,9 @@ if (document.readyState === 'loading') {
         items.push({ ...item, status });
         result.summary.total++;
         result.summary[status.kind] = (result.summary[status.kind] || 0) + 1;
-        if (item.qaCritical) {
-          result.summary.qaCritical++;
-          if (status.kind === 'missing') result.summary.qaCriticalMissing++;
+        if (item.qaRecommended) {
+          result.summary.qaRecommended++;
+          if (status.kind === 'missing') result.summary.qaRecommendedMissing++;
         }
       }
       result.groups[groupKey] = { ...group, items };
@@ -31089,12 +31099,12 @@ if (document.readyState === 'loading') {
           escHtml(preview) +
         '</div>';
       } else {
-        const isCritical = item.qaCritical;
-        body = '<div style="padding:18px;background:' + (isCritical ? '#fef2f2' : '#f3f4f6') + ';' +
-          'border:1px ' + (isCritical ? 'solid #dc2626' : 'dashed #9ca3af') + ';' +
-          'border-radius:8px;font-size:12.5px;color:' + (isCritical ? '#7f1d1d' : '#4b5563') + ';line-height:1.55">' +
+        const isRecommended = item.qaRecommended;
+        body = '<div style="padding:18px;background:' + (isRecommended ? '#fffbeb' : '#f3f4f6') + ';' +
+          'border:1px ' + (isRecommended ? 'solid #d97706' : 'dashed #9ca3af') + ';' +
+          'border-radius:8px;font-size:12.5px;color:' + (isRecommended ? '#78350f' : '#4b5563') + ';line-height:1.55">' +
           '<div style="font-weight:700;margin-bottom:6px">' +
-            (isCritical ? '⊘ Sekce povinná pro export, ale chybí' : '⊘ Sekce není vyplněná') +
+            (isRecommended ? '⚠ Doporučeno: vygenerovat tuto sekci pro premium PDF' : '⊘ Sekce není vyplněná') +
           '</div>' +
           'state.' + escHtml(item.statePath) + ' je prázdné. ' +
           (isCritical ? 'QA Gate blokuje export master PDF, dokud sekce nebude doplněna.' :
@@ -31475,7 +31485,7 @@ if (document.readyState === 'loading') {
         '<span style="color:#7c3aed;font-weight:600">● AI cached (' + (summary.ai_cached || 0) + ')</span>' +
         '<span style="color:#9ca3af;font-weight:600">● Missing (' + ((summary.missing || 0) + (summary.ai_missing || 0)) + ')</span>' +
         (summary.skipped > 0 ? '<span style="color:#9ca3af;font-weight:600">● Skipped (' + summary.skipped + ')</span>' : '') +
-        (summary.qaCriticalMissing > 0 ? '<span style="color:#dc2626;font-weight:700;margin-left:auto">⚠ ' + summary.qaCriticalMissing + ' kritických chybí</span>' : '') +
+        (summary.qaRecommendedMissing > 0 ? '<span style="color:#d97706;font-weight:700;margin-left:auto">⚠ ' + summary.qaRecommendedMissing + ' doporučených chybí</span>' : '') +
       '</div>' +
 
       // Groups
@@ -31693,17 +31703,20 @@ if (document.readyState === 'loading') {
       });
     }
 
-    // 5. Critical missing sections
-    const criticalMissing = [];
+    // 5. Recommended sections that are missing (alpha.33: was "critical missing"
+    // for AI-generated sections; now treated as recommended improvements)
+    const recommendedMissing = [];
     if (diag) {
       Object.values(diag.groups).forEach(g => {
         g.items.forEach(i => {
-          if (i.qaCritical && i.status.kind === 'missing') {
-            criticalMissing.push({ id: i.id, title: i.title, briefId: i.briefId });
+          if (i.qaRecommended && i.status.kind === 'missing') {
+            recommendedMissing.push({ id: i.id, title: i.title, briefId: i.briefId });
           }
         });
       });
     }
+    // Backward-compat alias for any external callers
+    const criticalMissing = recommendedMissing;
 
     // 6. AI sections not yet generated
     const aiMissing = [];
@@ -31732,12 +31745,22 @@ if (document.readyState === 'loading') {
     const hypotheses = evidence.filter(e => e.classification === 'strategic_hypothesis').length;
 
     // 9. Verdict
+    /* alpha.33: rebalanced for Layer 1 baseline. Old behavior: 4 missing AI-
+     * generated sections (managementAsk, risks, experiments, kpiTree) all
+     * triggered "Export blokován". New behavior: those 4 are now qaRecommended
+     * (warnings, not blocks). Export only blocks if genuinely broken state
+     * (no brief / no evidence at all). Verdicts:
+     *   - block: only if qaExport.canExport explicitly false (rare)
+     *   - warn:  missing recommended sections OR warnings — export proceeds
+     *   - go:    everything ready
+     */
     let verdict;
     const criticalCount = qa ? (qa.stats && qa.stats.critical) || 0 : 0;
     const warningCount = qa ? (qa.stats && qa.stats.warning) || 0 : 0;
+    const recommendedMissingCount = (diag && diag.summary && diag.summary.qaRecommendedMissing) || 0;
     const canExport = qa ? qa.canExport !== false : true;
 
-    if (!canExport || criticalMissing.length > 0) {
+    if (!canExport && criticalCount > 0) {
       verdict = {
         level: 'block',
         title: 'Export blokován',
@@ -31747,12 +31770,22 @@ if (document.readyState === 'loading') {
         border: '#fca5a5',
         icon: '⛔'
       };
-    } else if (warningCount > 0 || aiMissing.length > 0) {
+    } else if (recommendedMissingCount > 0 || warningCount > 0 || aiMissing.length > 0) {
+      // Friendly framing: export works, but quality can be improved
+      const parts = [];
+      if (recommendedMissingCount > 0) {
+        parts.push(recommendedMissingCount + ' doporučené sekce nevygenerována');
+      }
+      if (aiMissing.length > 0) {
+        parts.push(aiMissing.length + ' AI sekcí nevygenerováno');
+      }
+      if (warningCount > 0) {
+        parts.push(warningCount + ' varování');
+      }
       verdict = {
         level: 'warn',
-        title: 'Export povolen s upozorněními',
-        summary: (aiMissing.length > 0 ? aiMissing.length + ' AI sekcí nevygenerováno · ' : '') +
-                 (warningCount > 0 ? warningCount + ' QA varování' : 'Doplňte před prezentací klientovi'),
+        title: 'Export povolen — PDF může být obohacen',
+        summary: parts.join(' · ') + '. PDF se vytvoří s tím, co máte; chybějící sekce zobrazí placeholdery.',
         color: '#92400e',
         bg: '#fffbeb',
         border: '#fde68a',
@@ -31933,17 +31966,21 @@ if (document.readyState === 'loading') {
   function renderCriticalMissing(r) {
     if (r.criticalMissing.length === 0) return '';
 
+    // alpha.33: yellow "recommended", not red "blocked"
     return '<div style="' +
-        'padding:14px 16px;background:#fef2f2;border-left:4px solid #dc2626;' +
+        'padding:14px 16px;background:#fffbeb;border-left:4px solid #d97706;' +
         'border-radius:6px;margin-bottom:14px">' +
-      '<div style="font-size:12px;font-weight:700;color:#991b1b;margin-bottom:6px">' +
-        '⛔ Kritické sekce chybí (export blokován)' +
+      '<div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:6px">' +
+        '⚠ Doporučené sekce nevygenerovány — PDF zobrazí placeholdery' +
       '</div>' +
-      '<ul style="margin:0;padding-left:18px;font-size:12px;color:#7f1d1d;line-height:1.7">' +
+      '<ul style="margin:0;padding-left:18px;font-size:12px;color:#78350f;line-height:1.7">' +
         r.criticalMissing.map(s =>
           '<li><strong>' + escHtml(s.briefId) + '</strong> · ' + escHtml(s.title) + '</li>'
         ).join('') +
       '</ul>' +
+      '<div style="margin-top:8px;font-size:11px;color:#78350f;font-style:italic">' +
+        'Tip: vygenerujte přes Plan tab → klik na sekci → bulk generate buttons (Decision Layer, KPI Tree). PDF se i tak vyexportuje.' +
+      '</div>' +
     '</div>';
   }
 
