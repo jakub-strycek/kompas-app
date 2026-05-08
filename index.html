@@ -31107,7 +31107,7 @@ if (document.readyState === 'loading') {
             (isRecommended ? '⚠ Doporučeno: vygenerovat tuto sekci pro premium PDF' : '⊘ Sekce není vyplněná') +
           '</div>' +
           'state.' + escHtml(item.statePath) + ' je prázdné. ' +
-          (isCritical ? 'QA Gate blokuje export master PDF, dokud sekce nebude doplněna.' :
+          (isRecommended ? 'Doporučeno doplnit pro premium PDF — exportováno bude i bez toho s placeholderem.' :
             'Sekce v exportu nebude — buď ji doplňte do briefu, nebo přijměte, že nebude v PDF.') +
         '</div>';
       }
