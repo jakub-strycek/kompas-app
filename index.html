@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- KOMPAS™ build v7.0.0-alpha.31 (2026-05-06) — Path C source tree (v7-source). See LAYERS.md / FEATURES.md for architecture. -->
+<!-- KOMPAS™ build v7.0.0-alpha.33 (2026-05-08) — Path C source tree (v7-source). See LAYERS.md / FEATURES.md for architecture. -->
 <!-- KOMPAS v6.9.8: Data flow audit + enrichment. 1) Agresivní varianta rozšířena z 5 gap TITULŮ na plný kontext (brief, SWOT, segmenty, konkurenti, mezery, důkazy, mediální mix, reference k hlavní strategii) — není to už datově hladová kopie, ale plnohodnotná kontra-strategie. 2) briefAn (SWOT z úvodní analýzy briefu) nově vstupuje do yi.strategy jako samostatná sekce, plus instrukce v system-role aby AI explicitně vázala doporučení na silné/slabé stránky, příležitosti, rizika. 3) Media prompt (yi.media) rozšířen o demandPools, evidence a positioning — kanály se teď doporučují s vědomím segmentů, tónu značky a tržních důkazů. 4) Positioning framework prompt rozšířen o naše analyzované konkurenty, top mezery a segmenty — white space se identifikuje na základě REÁLNÉ competitive intel, ne jen archetypu. Žádné AI volání nebylo zjednodušeno — všechny předchozí datové vazby zachovány. -->
-<html lang="cs"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>KOMPAS™ v7.0.0-alpha.31 — Competitive Growth Operating System</title><link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%234f46e5'/><text x='16' y='22' text-anchor='middle' fill='white' font-size='18' font-weight='bold'>K</text></svg>"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}@keyframes spin{to{transform:rotate(360deg)}}</style></head><body><div id="root"></div><script type="module">
+<html lang="cs"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>KOMPAS™ v7.0.0-alpha.33 — Competitive Growth Operating System</title><link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%234f46e5'/><text x='16' y='22' text-anchor='middle' fill='white' font-size='18' font-weight='bold'>K</text></svg>"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}@keyframes spin{to{transform:rotate(360deg)}}</style></head><body><div id="root"></div><script type="module">
 (function(){const t=document.createElement("link").relList;if(t&&t.supports&&t.supports("modulepreload"))return;for(const i of document.querySelectorAll('link[rel="modulepreload"]'))r(i);new MutationObserver(i=>{for(const o of i)if(o.type==="childList")for(const a of o.addedNodes)a.tagName==="LINK"&&a.rel==="modulepreload"&&r(a)}).observe(document,{childList:!0,subtree:!0});function n(i){const o={};return i.integrity&&(o.integrity=i.integrity),i.referrerPolicy&&(o.referrerPolicy=i.referrerPolicy),i.crossOrigin==="use-credentials"?o.credentials="include":i.crossOrigin==="anonymous"?o.credentials="omit":o.credentials="same-origin",o}function r(i){if(i.ep)return;i.ep=!0;const o=n(i);fetch(i.href,o)}})();var Ls=typeof globalThis<"u"?globalThis:typeof window<"u"?window:typeof global<"u"?global:typeof self<"u"?self:{};function be(e){return e&&e.__esModule&&Object.prototype.hasOwnProperty.call(e,"default")?e.default:e}var Yx={exports:{}},iu={},Xx={exports:{}},se={};/**
  * @license React
  * react.production.min.js
@@ -11837,17 +11837,35 @@ function gatherAllEvidence() {
 }
 
 /* Helpers ------------------------------------------------------- */
+/* alpha.33 fix: Layer 1 evidence (manual user input or AI-generated) doesn't
+ * have explicit `strength` field — Phase 1 evidence classification + API
+ * services (NetMonitor, SimilarWeb, etc.) populate it. Without those, every
+ * evidence was counted as having NO strength, breaking Quality Gate scoring.
+ *
+ * New rule: evidence without explicit strength is treated as 'medium' baseline
+ * (AI research / manual entry is by default medium-quality). Only explicitly
+ * marked 'hypothesis' is treated as low-quality. This aligns with Jakub's
+ * mental model: "AI baseline = ~70% valid, API only enhances."
+ */
 function isStrongOrMedium(item) {
   const s = item.strength || item.evidenceStrength;
-  return s === 'strong' || s === 'medium';
+  if (s === 'strong' || s === 'medium') return true;
+  if (s === 'hypothesis') return false;
+  // No explicit strength → Layer 1 baseline → treat as medium
+  return true;
 }
 function isHypothesis(item) {
   const s = item.strength || item.evidenceStrength;
+  // Only EXPLICITLY marked hypotheses count. No-strength = baseline (not hypothesis).
   return s === 'hypothesis';
 }
 function getProvider(item) {
   if (item.provider) return item.provider;
   if (item._kr && item._kr.provider) return item._kr.provider;
+  // alpha.33: distinguish manual user input from AI research output
+  if (item.classification === 'validated_fact' || item.sourceUrl) return 'manual_or_ai_validated';
+  if (item.classification === 'evidence_backed_inference') return 'ai_research';
+  if (item.classification === 'strategic_hypothesis') return 'ai_hypothesis';
   return 'manual';
 }
 function getRoutedTo(item) {
@@ -11882,7 +11900,8 @@ function checkBrief(data) {
       label: 'Brief klienta',
       status: STATUS.PASS,
       message: 'Brief je vyplněný (produkt, audience, cíle).',
-      severity: 'critical'
+      severity: 'critical',
+      requirement: 'manual_input'
     };
   }
   if (missing.length <= 1) {
@@ -11891,8 +11910,9 @@ function checkBrief(data) {
       label: 'Brief klienta',
       status: STATUS.WARN,
       message: 'V briefu chybí: ' + missing.join(', ') + '.',
-      suggestion: 'Vraťte se do hlavního Kompasu a doplňte chybějící pole.',
-      severity: 'critical'
+      suggestion: 'Vyplňte chybějící pole v záložce Briefy. Bez API, čistě manuální vstup.',
+      severity: 'critical',
+      requirement: 'manual_input'
     };
   }
   return {
@@ -11900,8 +11920,9 @@ function checkBrief(data) {
     label: 'Brief klienta',
     status: STATUS.FAIL,
     message: 'Brief je z velké části nevyplněný (' + missing.length + ' kritických polí chybí).',
-    suggestion: 'Bez kompletního briefu nemá smysl generovat strategii — bude jen obecná.',
-    severity: 'critical'
+    suggestion: 'Vyplňte produkt + audience + cíle v záložce Briefy (5 minut, zvedne skóre o ~20 bodů). Žádné API.',
+    severity: 'critical',
+    requirement: 'manual_input'
   };
 }
 
@@ -12072,18 +12093,25 @@ function checkCompetitorCoverage(data) {
       severity: 'medium'
     };
   }
+  // alpha.33: relax FAIL to WARN. Per-competitor evidence text-mention is a
+  // Layer 2 metric (Fast Web Read finds it). Layer 1 user has competitors
+  // defined with scores and positioning — that's already competitive intel.
+  // FAIL would only make sense if NO competitors at all.
   return {
     id: 'competitor_coverage',
     label: 'Pokrytí konkurentů',
-    status: STATUS.FAIL,
-    message: 'Většina konkurentů (' + (competitorNames.length - covered.length) + ' z ' + competitorNames.length + ') je bez důkazů.',
-    suggestion: 'Strategie bez competitive intelligence je rizikem. Spusťte výzkum na konkurenty.',
+    status: STATUS.WARN,
+    message: 'Konkurenti jsou definovaní (' + competitorNames.length + '), ale chybí explicit důkazy o nich v knihovně. Strategie použije scores a positioning, které jste zadali.',
+    suggestion: 'Volitelné: Spusťte Fast Web Read na konkurenty pro deeper competitive intelligence (homepage analýza, claims, ceny).',
     severity: 'medium'
   };
 }
 
 function checkSectionRouting(data) {
-  // Only counts evidence with explicit routedTo, not just "in evidence"
+  // alpha.33: Layer 1 evidence (manual user input + AI-generated) doesn't have
+  // explicit `routedTo` field — that's Phase 1 Findings Review feature. We
+  // shouldn't penalize Layer 1 users for missing this metadata, only nudge
+  // them gently. Severity downgraded from 'medium' to 'low' across all branches.
   const sections = ['gaps', 'positioning', 'media', 'strategy'];
   const counts = {};
   sections.forEach(s => counts[s] = 0);
@@ -12098,8 +12126,8 @@ function checkSectionRouting(data) {
       id: 'routing',
       label: 'Routing důkazů do sekcí',
       status: STATUS.WARN,
-      message: 'Žádný důkaz není explicitně přiřazen k sekci (Mezery / Positioning / Media / Strategie).',
-      suggestion: 'V Findings Review klikejte na + Mezery / + Positioning / + Strategie u nejrelevantnějších findings — strategie pak bude vědět, co kam.',
+      message: data.legacy.length + ' důkazů v knihovně není explicitně přiřazeno k sekcím — strategie použije všechny pro context.',
+      suggestion: 'Volitelné: V Findings Review můžete klikat na + Mezery / + Positioning / + Strategie u nejrelevantnějších findings pro lepší focus. Bez tohoto AI použije všechny důkazy automaticky.',
       severity: 'low'
     };
   }
@@ -12203,13 +12231,34 @@ function checkAll() {
   const warnedHigh = checks.some(c => c.severity === 'high' && c.status.id === 'warn');
   const failedMedium = checks.some(c => c.severity === 'medium' && c.status.id === 'fail');
 
+  // alpha.33: rebalanced verdicts. Layer 1 (AI baseline + manual input) is a
+  // valid foundation for strategy — Jakub's mental model: "AI baseline = ~70%
+  // valid, API only enhances." Old "block" verdict for missing brief fields
+  // was demoralizing for users who'd done substantial work. New framing:
+  //   - block: only if MULTIPLE critical fail (brief + volume) or no data at all
+  //   - risky: serious gaps that need attention
+  //   - warn: minor improvements possible
+  //   - go: solid baseline, ready
+  const criticalFails = checks.filter(c => c.severity === 'critical' && c.status.id === 'fail').length;
+  const highFails = checks.filter(c => c.severity === 'high' && c.status.id === 'fail').length;
+  const totalDataLayer1 = data.legacy.length > 0; // has any evidence at all
+
   let verdict;
-  if (failedCritical) {
+  if (criticalFails >= 2 || (criticalFails >= 1 && !totalDataLayer1)) {
+    // Multiple critical fails OR brief missing AND no evidence at all
     verdict = {
       level: 'block',
       icon: '🛑',
       title: 'Strategie zatím nemůže být relevantní',
-      summary: 'Bez kompletního briefu a alespoň minimálního výzkumu by strategie byla obecná. Doplňte chybějící části.'
+      summary: 'Bez kompletního briefu a alespoň základního výzkumu by strategie byla obecná. Doplňte chybějící části — typicky 5-10 minut práce.'
+    };
+  } else if (criticalFails === 1) {
+    // Brief incomplete but evidence exists — soft warning, can proceed
+    verdict = {
+      level: 'risky',
+      icon: '⚠️',
+      title: 'Strategie bude funkční, ale brief by ji posílil',
+      summary: 'Důkazní základ je solidní (' + data.legacy.length + ' důkazů), ale brief klienta není kompletní. Doplnění briefu (produkt + audience + cíle) zvedne relevanci o ~20 bodů.'
     };
   } else if (failedHigh) {
     verdict = {
@@ -12230,7 +12279,10 @@ function checkAll() {
       level: 'go',
       icon: '✅',
       title: 'Důkazní základ je solidní',
-      summary: 'Strategie postavená na tomto výzkumu má reálné fundamenty. Můžete pokračovat.'
+      summary: 'Strategie postavená na tomto výzkumu má reálné fundamenty. Můžete pokračovat. ' +
+        (data.legacy.length >= 5 && data.legacy.length < 15
+          ? 'Pro premium consulting deliverable doporučujeme rozšířit důkazní bázi (15+ důkazů) přes Research API.'
+          : '')
     };
   }
 
@@ -12251,7 +12303,10 @@ function checkAll() {
     checks,
     verdict,
     aggregateScore,
-    canProceed: !failedCritical,
+    // alpha.33: Allow proceeding unless TRULY broken (multiple critical fails
+    // or empty state). Single critical fail (e.g. brief incomplete but 25
+    // evidences exist) is a warning, not a blocker.
+    canProceed: !(criticalFails >= 2 || (criticalFails >= 1 && !totalDataLayer1)),
     timestamp: new Date().toISOString()
   };
 }
@@ -22588,7 +22643,230 @@ if (document.readyState === 'loading') {
 })();
 </script>
 
-<script>
+<script>/* ========================================================================
+   KOMPAS™ Storage Protection — Phase 17 (alpha.32)
+   ════════════════════════════════════════════════════════════════════════
+   CRITICAL ARCHITECTURAL FIX:
+
+   Vendor's redux store overwrites localStorage at every tab switch and
+   user action. Vendor writes contain only state slices vendor knows about
+   (brief, competitors, gaps, evidence, mediaRecs, demandPools, positioning,
+   strategy as a whole, ui state). It DOES NOT know about extension-layer
+   fields written by KR.kpiTree, KR.decisionLayer, KR.consultantPack,
+   KR.consultantSections, KR.battlecards.
+
+   Result before this fix:
+     1. User clicks "Vygenerovat KPI Tree"
+     2. KR.kpiTree.saveToState writes localStorage: {strategy: {kpiTree: ...}}
+     3. User switches tab → vendor saves redux state to localStorage
+     4. Vendor's redux state has no kpiTree → localStorage overwritten:
+        {strategy: {}}
+     5. KPI Tree LOST. QA gate fails. Export blocked.
+
+   This affected ALL extension generators — same bug for:
+     - state.strategy.kpiTree (alpha.30)
+     - state.strategy.decisionLayer + top-level fields (alpha.28)
+     - state.strategy.consultantPack (alpha.21)
+     - state.strategy.consultantSections (alpha.13+)
+     - state.strategy.battlecards (alpha.29)
+     - state.strategy.consultantHeadlines (Phase 4)
+
+   FIX: Monkey-patch Storage.prototype.setItem for the kompas_v5 key.
+   When vendor writes, we merge in any extension fields from the existing
+   stored state that are missing in the incoming payload. Extension fields
+   are preserved transparently across vendor writes.
+
+   This module loads BEFORE all other phases via _ORDER.json so the
+   protection is in place from app start.
+   ======================================================================== */
+(function () {
+  'use strict';
+
+  const STORAGE_KEY = 'kompas_v5';
+
+  /* ─── Extension-layer fields that vendor doesn't know about ────────── */
+  // Map of state slice → array of subfields to protect within that slice
+  const EXTENSION_FIELDS = {
+    strategy: [
+      // Phase 16 — alpha.30 KPI Tree generator
+      'kpiTree',
+      // Phase 5 — Decision Layer (alpha.28 dual-write: sub-namespace + top-level)
+      'decisionLayer',
+      'executiveDecisionPage',
+      'oneSentenceStrategy',
+      'strategicDiagnosis',
+      'growthThesis',
+      'marketTruth',
+      'strategicChoiceArchitecture',
+      'mustWinBattles',
+      'managementAsk',
+      // Phase 4 — Consultant Headlines
+      'consultantHeadlines',
+      // Phase 6 — Consultant Pack
+      'consultantPack',
+      // Phase 11 — AI Cached Brief Sections (B22-B28)
+      'consultantSections',
+      // Phase 15 — Battlecards (alpha.29)
+      'battlecards'
+    ],
+    // positioning.frameworkText is also extension-managed (alpha.23)
+    // but vendor's positioning slice writes are merged via spread, so
+    // frameworkText survives. We protect explicitly anyway:
+    positioning: [
+      'frameworkText'
+    ]
+  };
+
+  // If user clicks an explicit "reset"/"clear" UI, we must allow strategy
+  // to be cleared. We detect that by a marker the reset code sets before
+  // calling clearAll. Without the marker, we always preserve.
+  let _allowFullClear = false;
+
+  /* ─── Helpers ─────────────────────────────────────────────────────── */
+  function isObject(x) {
+    return x != null && typeof x === 'object' && !Array.isArray(x);
+  }
+
+  function readExisting(origGetItem) {
+    try {
+      const raw = origGetItem.call(localStorage, STORAGE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /**
+   * Merge `incoming` (about to be written by vendor) with `existing`
+   * (already in localStorage), preserving extension fields from existing
+   * when they are absent in incoming.
+   */
+  function mergeProtected(incoming, existing) {
+    if (!isObject(existing)) return incoming;
+    if (!isObject(incoming)) return incoming;
+
+    const merged = Object.assign({}, incoming);
+
+    Object.entries(EXTENSION_FIELDS).forEach(function (entry) {
+      const slice = entry[0];
+      const fields = entry[1];
+
+      const existingSlice = existing[slice];
+      if (!isObject(existingSlice)) return;  // nothing to preserve
+
+      const incomingSlice = isObject(merged[slice]) ? merged[slice] : {};
+
+      let mergedSlice = null;
+      fields.forEach(function (field) {
+        const existingVal = existingSlice[field];
+        const incomingVal = incomingSlice[field];
+        // Preserve only when:
+        //   - existing has the field (non-null/undefined)
+        //   - incoming doesn't have it OR has it as empty/null
+        const existingExists = existingVal !== undefined && existingVal !== null &&
+          !(typeof existingVal === 'object' && Object.keys(existingVal || {}).length === 0 && !Array.isArray(existingVal)) &&
+          !(Array.isArray(existingVal) && existingVal.length === 0);
+        const incomingMissing = incomingVal === undefined || incomingVal === null;
+
+        if (existingExists && incomingMissing) {
+          if (!mergedSlice) mergedSlice = Object.assign({}, incomingSlice);
+          mergedSlice[field] = existingVal;
+        }
+      });
+
+      if (mergedSlice) {
+        merged[slice] = mergedSlice;
+      }
+    });
+
+    return merged;
+  }
+
+  /* ─── Install monkey-patch ────────────────────────────────────────── */
+  if (window._krStorageProtectionInstalled) {
+    console.warn('[KOMPAS] Storage protection already installed; skipping.');
+    return;
+  }
+  window._krStorageProtectionInstalled = true;
+
+  const origSetItem = Storage.prototype.setItem;
+  const origGetItem = Storage.prototype.getItem;
+
+  Storage.prototype.setItem = function (key, value) {
+    // Pass-through for non-kompas keys
+    if (key !== STORAGE_KEY) {
+      return origSetItem.call(this, key, value);
+    }
+
+    // Pass-through if explicit clear is allowed
+    if (_allowFullClear) {
+      return origSetItem.call(this, key, value);
+    }
+
+    try {
+      const incoming = JSON.parse(value);
+      const existing = readExisting(origGetItem);
+      const merged = mergeProtected(incoming, existing);
+      const finalValue = JSON.stringify(merged);
+
+      // Track preserve operations (helpful for debugging in browser console)
+      if (window._krStorageDebug) {
+        const preservedFields = [];
+        Object.entries(EXTENSION_FIELDS).forEach(function (entry) {
+          const slice = entry[0];
+          const fields = entry[1];
+          if (!existing || !existing[slice]) return;
+          fields.forEach(function (f) {
+            if (existing[slice][f] != null &&
+                (!incoming[slice] || incoming[slice][f] == null) &&
+                merged[slice] && merged[slice][f] != null) {
+              preservedFields.push(slice + '.' + f);
+            }
+          });
+        });
+        if (preservedFields.length) {
+          console.log('[KOMPAS storage] preserved:', preservedFields.join(', '));
+        }
+      }
+
+      return origSetItem.call(this, key, finalValue);
+    } catch (e) {
+      console.warn('[KOMPAS storage] merge failed, passing through:', e);
+      return origSetItem.call(this, key, value);
+    }
+  };
+
+  /* ─── Public API ──────────────────────────────────────────────────── */
+  window.KR = window.KR || {};
+  window.KR.storageProtection = {
+    /**
+     * Allow the next localStorage write to bypass merge protection
+     * (i.e. fully replace state). Used by reset/clear UI flows that
+     * legitimately want to wipe extension fields too.
+     */
+    allowOneClearWrite: function () {
+      _allowFullClear = true;
+      // Auto-disable after 100ms — only the immediate next write bypasses
+      setTimeout(function () { _allowFullClear = false; }, 100);
+    },
+    /** Enable verbose console logging for debugging */
+    enableDebug: function () { window._krStorageDebug = true; },
+    /** Disable verbose console logging */
+    disableDebug: function () { window._krStorageDebug = false; },
+    /** Inspect current extension fields config */
+    getProtectedFields: function () {
+      return JSON.parse(JSON.stringify(EXTENSION_FIELDS));
+    },
+    _version: '1.0.0'
+  };
+
+  console.log(
+    '%c[KOMPAS] Storage Protection installed',
+    'background:#dc2626;color:#fff;padding:2px 8px;border-radius:4px;font-weight:600',
+    '— vendor writes won\'t overwrite extension fields'
+  );
+})();
+
 
 /* ============================================================
    KOMPAS™ v6.18 — Phase 1-8 modules
@@ -26123,30 +26401,110 @@ if (document.readyState === 'loading') {
     const s = state.strategy || {};
     const kpis = s.kpis || [];
     const h = getHeadline(state, 'kpiTree');
-    if (!kpis.length && !s.expectedResults) return '';
-
     const expectedResults = s.expectedResults || {};
+    // alpha.32: preferuj alpha.30 hierarchical kpiTree (north star + supporting + leading)
+    const tree = s.kpiTree;
+    const hasTree = tree && typeof tree === 'object' && tree.northStar && tree.northStar.metric;
 
+    if (!hasTree && !kpis.length && !Object.keys(expectedResults).length) return '';
+
+    const consultBox = consultantBox(h && h.headline, h && h.soWhat);
+    const titleStr = escHtml((h && h.title) || 'KPI Tree');
+
+    /* ─── alpha.30 hierarchical render ────────────────────────────────── */
+    if (hasTree) {
+      const ns = tree.northStar;
+      const supporting = Array.isArray(tree.supportingMetrics) ? tree.supportingMetrics : [];
+      const leading = Array.isArray(tree.leadingIndicators) ? tree.leadingIndicators : [];
+
+      let body = '<div class="page" style="padding:50px 60px;page-break-after:always">' +
+        '<div style="font-size:10px;font-weight:700;color:#059669;letter-spacing:0.16em;text-transform:uppercase;margin-bottom:6px">Strategy Layer</div>' +
+        '<h2 style="font-size:24px;font-weight:700;color:#1a1a2e;margin:0 0 4px;letter-spacing:-0.02em">' + titleStr + '</h2>' +
+        consultBox;
+
+      // North Star — hero card
+      body += '<div style="margin:18px 0;padding:22px 26px;background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff;border-radius:12px;page-break-inside:avoid">' +
+        '<div style="font-size:10px;font-weight:700;color:#a5b4fc;letter-spacing:0.16em;text-transform:uppercase;margin-bottom:6px">⭐ North Star Metric</div>' +
+        '<div style="font-size:22px;font-weight:700;line-height:1.3;margin-bottom:10px">' + escHtml(ns.metric) + '</div>' +
+        '<div style="display:flex;gap:24px;flex-wrap:wrap;font-size:13px">' +
+          (ns.current ? '<div><span style="color:#a5b4fc;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase">Aktuálně</span><br>' + escHtml(ns.current) + '</div>' : '') +
+          (ns.target ? '<div><span style="color:#a5b4fc;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase">Cíl</span><br><strong>' + escHtml(ns.target) + '</strong></div>' : '') +
+          (ns.timeframe ? '<div><span style="color:#a5b4fc;font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase">Horizont</span><br>' + escHtml(ns.timeframe) + '</div>' : '') +
+        '</div>' +
+        (ns.rationale ? '<div style="margin-top:10px;font-size:11.5px;color:#cbd5e1;line-height:1.5;font-style:italic">' + escHtml(ns.rationale) + '</div>' : '') +
+      '</div>';
+
+      // Supporting Metrics
+      if (supporting.length) {
+        body += '<div style="font-size:11px;font-weight:700;color:#7c3aed;letter-spacing:0.12em;text-transform:uppercase;margin:18px 0 8px">Supporting Metrics</div>' +
+          '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:18px">' +
+            '<thead><tr style="background:#f8f7f4;border-bottom:2px solid #e5e3df">' +
+              '<th style="text-align:left;padding:10px;font-size:9px;font-weight:700;color:#8888a0;letter-spacing:0.06em;text-transform:uppercase">Metrika</th>' +
+              '<th style="text-align:left;padding:10px;font-size:9px;font-weight:700;color:#8888a0;letter-spacing:0.06em;text-transform:uppercase;width:110px">Dimenze</th>' +
+              '<th style="text-align:left;padding:10px;font-size:9px;font-weight:700;color:#8888a0;letter-spacing:0.06em;text-transform:uppercase;width:90px">Aktuálně</th>' +
+              '<th style="text-align:left;padding:10px;font-size:9px;font-weight:700;color:#8888a0;letter-spacing:0.06em;text-transform:uppercase;width:90px">Cíl</th>' +
+              '<th style="text-align:left;padding:10px;font-size:9px;font-weight:700;color:#8888a0;letter-spacing:0.06em;text-transform:uppercase">Rationale</th>' +
+            '</tr></thead><tbody>' +
+            supporting.map(m => '<tr style="border-bottom:1px solid #f0eeeb">' +
+              '<td style="padding:10px;font-weight:700;color:#1a1a2e">' + escHtml(m.metric || '?') + '</td>' +
+              '<td style="padding:10px;color:#7c3aed;font-size:10.5px;font-weight:600">' + escHtml(m.dimension || '') + '</td>' +
+              '<td style="padding:10px;color:#3d3d56">' + escHtml(m.current || '—') + '</td>' +
+              '<td style="padding:10px;color:#059669;font-weight:700">' + escHtml(m.target || '—') + '</td>' +
+              '<td style="padding:10px;color:#8888a0;font-size:11px">' + escHtml(m.rationale || '') + '</td>' +
+            '</tr>').join('') +
+          '</tbody></table>';
+      }
+
+      // Leading Indicators
+      if (leading.length) {
+        body += '<div style="font-size:11px;font-weight:700;color:#0891b2;letter-spacing:0.12em;text-transform:uppercase;margin:18px 0 8px">Leading Indicators</div>' +
+          '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;margin-bottom:18px">' +
+          leading.map(li => '<div style="padding:14px 16px;background:#fff;border:1px solid #f0eeeb;border-left:3px solid #0891b2;border-radius:0 8px 8px 0;page-break-inside:avoid">' +
+            '<div style="font-size:13px;font-weight:700;color:#1a1a2e;margin-bottom:4px">' + escHtml(li.metric || '?') + '</div>' +
+            (li.target ? '<div style="font-size:11px;color:#0891b2;font-weight:600;margin-bottom:4px">Target: ' + escHtml(li.target) + '</div>' : '') +
+            (li.why ? '<div style="font-size:11px;color:#3d3d56;line-height:1.5">' + escHtml(li.why) + '</div>' : '') +
+            (li.dimension ? '<div style="font-size:9.5px;color:#8888a0;margin-top:4px;text-transform:uppercase;letter-spacing:0.06em">→ ' + escHtml(li.dimension) + '</div>' : '') +
+          '</div>').join('') +
+        '</div>';
+      }
+
+      // Data gaps + measurement plan
+      if (Array.isArray(tree.dataGaps) && tree.dataGaps.length) {
+        body += '<div style="margin-top:14px;padding:12px 16px;background:#fffbeb;border-left:3px solid #d97706;border-radius:0 8px 8px 0">' +
+          '<div style="font-size:9.5px;font-weight:700;color:#d97706;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px">⚠ Data Gaps — co klient potřebuje doplnit</div>' +
+          '<ul style="margin:0;padding-left:18px;font-size:11.5px;color:#78350f;line-height:1.55">' +
+            tree.dataGaps.slice(0, 6).map(g => '<li style="margin-bottom:3px">' + escHtml(g) + '</li>').join('') +
+          '</ul>' +
+        '</div>';
+      }
+
+      if (tree.measurementPlan) {
+        body += '<div style="margin-top:10px;padding:12px 16px;background:#ecfdf5;border-left:3px solid #059669;border-radius:0 8px 8px 0;font-size:11.5px;color:#065f46;line-height:1.55">' +
+          '<strong>Measurement plan:</strong> ' + escHtml(tree.measurementPlan) +
+        '</div>';
+      }
+
+      body += '</div>';
+      return body;
+    }
+
+    /* ─── Legacy fallback: vendor flat kpis array + expectedResults ─── */
     return '<div class="page" style="padding:50px 60px;page-break-after:always">' +
       '<div style="font-size:10px;font-weight:700;color:#059669;letter-spacing:0.16em;text-transform:uppercase;margin-bottom:6px">Strategy Layer</div>' +
-      '<h2 style="font-size:24px;font-weight:700;color:#1a1a2e;margin:0 0 4px;letter-spacing:-0.02em">' + escHtml((h && h.title) || 'KPI Tree') + '</h2>' +
-      
-      consultantBox(h && h.headline, h && h.soWhat) +
-      
-      (Object.keys(expectedResults).filter(k => !k.startsWith('_') && k !== 'disclaimer').length ? 
+      '<h2 style="font-size:24px;font-weight:700;color:#1a1a2e;margin:0 0 4px;letter-spacing:-0.02em">' + titleStr + '</h2>' +
+      consultBox +
+      (Object.keys(expectedResults).filter(k => !k.startsWith('_') && k !== 'disclaimer').length ?
         '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px">' +
-          ['traffic', 'leads', 'revenue', 'conversion', 'cac'].filter(k => expectedResults[k]).map(k => 
+          ['traffic', 'leads', 'revenue', 'conversion', 'cac'].filter(k => expectedResults[k]).map(k =>
             '<div style="padding:14px;background:#f0fdf4;border:1px solid #a7f3d0;border-radius:10px;text-align:center">' +
               '<div style="font-size:10px;color:#059669;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:4px">' + escHtml(k) + '</div>' +
               '<div style="font-size:22px;color:#059669;font-weight:800">' + escHtml(expectedResults[k]) + '</div>' +
             '</div>'
           ).join('') +
         '</div>' : '') +
-      
       (expectedResults.disclaimer ? '<div style="padding:8px 12px;background:#fffbeb;border-left:3px solid #d97706;border-radius:0 6px 6px 0;font-size:11px;color:#92400e;font-style:italic;margin-bottom:14px">' +
         (evCls ? evCls.badge('strategic_hypothesis', { size: 'sm' }) + ' ' : '') + escHtml(expectedResults.disclaimer) +
       '</div>' : '') +
-      
       (kpis.length ? '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:14px">' +
         '<thead><tr style="background:#f8f7f4;border-bottom:2px solid #e5e3df">' +
           '<th style="text-align:left;padding:10px;font-size:9px;font-weight:700;color:#8888a0;letter-spacing:0.06em;text-transform:uppercase">Metrika</th>' +
@@ -29430,7 +29788,26 @@ if (document.readyState === 'loading') {
   function showExtendedPreviewWithDefaults(opts) {
     opts = opts || {};
     return showExtendedPreview({
-      onProceedV1: opts.onProceedV1 || (opts.onProceed || function () {}),
+      // alpha.32: Default onProceedV1 was empty function — clicking
+      // "Standard PDF (legacy)" button did nothing. Now it routes to
+      // pdfV2 (same as V2 / Senior Consulting) — Standard and Senior
+      // are functionally identical post-v7 since the legacy V1 renderer
+      // path was deprecated. The button label remains for users who
+      // remember the old distinction, but functionally there's only
+      // one PDF flow.
+      onProceedV1: opts.onProceedV1 || (opts.onProceed || function () {
+        if (!window.KR.pdfV2 || !window.KR.pdfV2.open) {
+          toast('PDF builder není načtený.', 'error');
+          return;
+        }
+        try {
+          window.KR.pdfV2.open(null, { mode: 'full' });
+          toast('Otevírám PDF report...', 'success');
+        } catch (err) {
+          console.error('[PDF] Error:', err);
+          toast('Chyba: ' + err.message, 'error');
+        }
+      }),
       onProceedV2: opts.onProceedV2 || function () {
         if (!window.KR.pdfV2 || !window.KR.pdfV2.open) {
           toast('Senior PDF builder není načtený.', 'error');
