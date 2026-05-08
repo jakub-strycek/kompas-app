@@ -7957,9 +7957,11 @@ async function callAnthropic({ apiKey, system, user, maxTokens, onStatus }) {
 /* ============================================================ */
 function extractJson(text) {
   if (!text) return null;
+
   // Strip markdown fences
   let t = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
-  // Find first { ... } or [ ... ]
+
+  // Find first { or [
   const firstBrace = t.indexOf('{');
   const firstBracket = t.indexOf('[');
   let start = -1;
@@ -7967,15 +7969,98 @@ function extractJson(text) {
   if (firstBrace === -1) start = firstBracket;
   else if (firstBracket === -1) start = firstBrace;
   else start = Math.min(firstBrace, firstBracket);
-  // Find matching close (greedy from the end)
+
+  // alpha.34: Strategy 1 — greedy match (last } or ]) — original behavior
   const lastBrace = t.lastIndexOf('}');
   const lastBracket = t.lastIndexOf(']');
   const end = Math.max(lastBrace, lastBracket);
-  if (end <= start) return null;
-  const candidate = t.slice(start, end + 1);
-  try { return JSON.parse(candidate); } catch { /* fallthrough */ }
-  // Sometimes truncated; try repair: balance braces
+  if (end > start) {
+    const candidate = t.slice(start, end + 1);
+    const cleaned = _cleanJsonQuirks(candidate);
+    try { return JSON.parse(cleaned); } catch { /* try repair */ }
+  }
+
+  // alpha.34: Strategy 2 — truncation repair via brace balancer.
+  // If max_tokens cut off in middle of JSON, walk character-by-character,
+  // tracking string state and brace depth. When we run out of input, close
+  // any open structures and try to parse.
+  const repaired = _repairTruncatedJson(t.slice(start));
+  if (repaired) {
+    try { return JSON.parse(repaired); } catch { /* fallthrough */ }
+    // One more attempt with quirk cleaning
+    try { return JSON.parse(_cleanJsonQuirks(repaired)); } catch { /* fallthrough */ }
+  }
+
   return null;
+}
+
+/* alpha.34: Clean common Claude JSON quirks. */
+function _cleanJsonQuirks(s) {
+  return s
+    // Strip trailing commas before } or ]
+    .replace(/,(\s*[}\]])/g, '$1')
+    // Smart quotes → straight quotes (Claude sometimes uses these)
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"');
+}
+
+/* alpha.34: Walk JSON char-by-char, track string + escape state, balance
+ * structures at the end of input. Useful when AI hit max_tokens.
+ */
+function _repairTruncatedJson(s) {
+  // Helper: walk string and return final {stack, inString, lastTopLevelClose}
+  function walk(input) {
+    let inString = false, escape = false;
+    const stack = [];
+    let lastValidEnd = -1;
+    let lastSafeBoundary = -1; // last `,` `{` `[` outside strings
+    for (let i = 0; i < input.length; i++) {
+      const c = input[i];
+      if (escape) { escape = false; continue; }
+      if (c === '\\') { escape = true; continue; }
+      if (c === '"') { inString = !inString; continue; }
+      if (inString) continue;
+      if (c === '{') { stack.push('obj'); lastSafeBoundary = i; }
+      else if (c === '[') { stack.push('arr'); lastSafeBoundary = i; }
+      else if (c === ',') { lastSafeBoundary = i; }
+      else if (c === '}' || c === ']') {
+        stack.pop();
+        if (stack.length === 0) lastValidEnd = i;
+      }
+    }
+    return { stack, inString, lastValidEnd, lastSafeBoundary };
+  }
+
+  const w1 = walk(s);
+
+  // Best case: input has clean top-level close
+  if (w1.lastValidEnd > 0 && w1.stack.length === 0 && !w1.inString) {
+    return s.slice(0, w1.lastValidEnd + 1);
+  }
+
+  // Truncated. Cut at last safe boundary OUTSIDE strings.
+  if (w1.lastSafeBoundary < 0) return null;
+
+  // Truncate at boundary. If boundary is `,` we want to drop the comma + remove
+  // the partial content after it. If boundary is `{` or `[` we just drop them
+  // and what comes after.
+  const boundaryChar = s[w1.lastSafeBoundary];
+  let truncatePos = w1.lastSafeBoundary;
+  if (boundaryChar === ',') {
+    // Drop the comma itself — it would otherwise need a value after
+    truncatePos = w1.lastSafeBoundary;
+  }
+  // For `{` or `[` we drop them too (truncatePos at their position; slice excludes)
+  let truncated = s.slice(0, truncatePos);
+
+  // Recompute stack for the TRUNCATED content (not the full original)
+  const w2 = walk(truncated);
+
+  // Append closes to balance truncated's stack
+  const closes = w2.stack.slice().reverse().map(t => t === 'obj' ? '}' : ']').join('');
+  const candidate = truncated + closes;
+
+  return _cleanJsonQuirks(candidate);
 }
 
 /* ============================================================ */
@@ -13882,14 +13967,23 @@ async function generate(options, onStatus) {
   if (onStatus) onStatus('AI generuje strategii (Claude)...');
 
   const aiResp = await window.KR.synthesis.callAnthropic({
-    apiKey, system, user, maxTokens: 12000, onStatus
+    apiKey, system, user, maxTokens: 16000, onStatus
   });
   if (!aiResp.success) return aiResp;
 
   const json = window.KR.synthesis.extractJson(aiResp.text);
   if (!json) {
+    // alpha.34: Better diagnostic — distinguish truncation from genuine non-JSON
+    const txt = aiResp.text || '';
+    const looksLikeJson = txt.indexOf('{') !== -1 || txt.indexOf('[') !== -1;
+    const looksTruncated = looksLikeJson && txt.length > 8000 && !txt.trim().endsWith('}') && !txt.trim().endsWith(']');
+    const hint = looksTruncated
+      ? 'AI odpověď byla useknutá (max tokens limit). Aplikace se pokusila opravit, ale obnova selhala. Zkuste znovu.'
+      : looksLikeJson
+        ? 'AI odpověď obsahuje JSON, ale parser ji nezvládl. Zkuste znovu — Claude občas generuje slightly malformed output.'
+        : 'AI vrátila prózu místo JSON. Zkuste znovu.';
     return KR_helpers_S2.makeError('anthropic', 'PARSE', 'JSON parse failed',
-      'Claude nevrátil platný JSON. Zkuste znovu.', true, aiResp.text.slice(0, 500));
+      hint, true, txt.slice(0, 500));
   }
 
   return {
