@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- KOMPAS™ build v7.0.0-alpha.33 (2026-05-08) — Path C source tree (v7-source). See LAYERS.md / FEATURES.md for architecture. -->
+<!-- KOMPAS™ build v7.0.0-alpha.33 (2026-05-09) — Path C source tree (v7-source). See LAYERS.md / FEATURES.md for architecture. -->
 <!-- KOMPAS v6.9.8: Data flow audit + enrichment. 1) Agresivní varianta rozšířena z 5 gap TITULŮ na plný kontext (brief, SWOT, segmenty, konkurenti, mezery, důkazy, mediální mix, reference k hlavní strategii) — není to už datově hladová kopie, ale plnohodnotná kontra-strategie. 2) briefAn (SWOT z úvodní analýzy briefu) nově vstupuje do yi.strategy jako samostatná sekce, plus instrukce v system-role aby AI explicitně vázala doporučení na silné/slabé stránky, příležitosti, rizika. 3) Media prompt (yi.media) rozšířen o demandPools, evidence a positioning — kanály se teď doporučují s vědomím segmentů, tónu značky a tržních důkazů. 4) Positioning framework prompt rozšířen o naše analyzované konkurenty, top mezery a segmenty — white space se identifikuje na základě REÁLNÉ competitive intel, ne jen archetypu. Žádné AI volání nebylo zjednodušeno — všechny předchozí datové vazby zachovány. -->
 <html lang="cs"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>KOMPAS™ v7.0.0-alpha.33 — Competitive Growth Operating System</title><link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%234f46e5'/><text x='16' y='22' text-anchor='middle' fill='white' font-size='18' font-weight='bold'>K</text></svg>"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}@keyframes spin{to{transform:rotate(360deg)}}</style></head><body><div id="root"></div><script type="module">
 (function(){const t=document.createElement("link").relList;if(t&&t.supports&&t.supports("modulepreload"))return;for(const i of document.querySelectorAll('link[rel="modulepreload"]'))r(i);new MutationObserver(i=>{for(const o of i)if(o.type==="childList")for(const a of o.addedNodes)a.tagName==="LINK"&&a.rel==="modulepreload"&&r(a)}).observe(document,{childList:!0,subtree:!0});function n(i){const o={};return i.integrity&&(o.integrity=i.integrity),i.referrerPolicy&&(o.referrerPolicy=i.referrerPolicy),i.crossOrigin==="use-credentials"?o.credentials="include":i.crossOrigin==="anonymous"?o.credentials="omit":o.credentials="same-origin",o}function r(i){if(i.ep)return;i.ep=!0;const o=n(i);fetch(i.href,o)}})();var Ls=typeof globalThis<"u"?globalThis:typeof window<"u"?window:typeof global<"u"?global:typeof self<"u"?self:{};function be(e){return e&&e.__esModule&&Object.prototype.hasOwnProperty.call(e,"default")?e.default:e}var Yx={exports:{}},iu={},Xx={exports:{}},se={};/**
@@ -32060,20 +32060,30 @@ if (document.readyState === 'loading') {
   function renderCriticalMissing(r) {
     if (r.criticalMissing.length === 0) return '';
 
-    // alpha.33: yellow "recommended", not red "blocked"
+    // alpha.34: per-item action buttons. Each missing recommended section gets
+    // a "→ Vygenerovat" button that deep-links to Plan tab + opens detail panel.
     return '<div style="' +
         'padding:14px 16px;background:#fffbeb;border-left:4px solid #d97706;' +
         'border-radius:6px;margin-bottom:14px">' +
-      '<div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:6px">' +
+      '<div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:8px">' +
         '⚠ Doporučené sekce nevygenerovány — PDF zobrazí placeholdery' +
       '</div>' +
-      '<ul style="margin:0;padding-left:18px;font-size:12px;color:#78350f;line-height:1.7">' +
+      '<div style="display:flex;flex-direction:column;gap:6px">' +
         r.criticalMissing.map(s =>
-          '<li><strong>' + escHtml(s.briefId) + '</strong> · ' + escHtml(s.title) + '</li>'
+          '<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:#fff;border-radius:6px">' +
+            '<span style="font-size:11px;font-weight:700;color:#92400e;background:#fef3c7;padding:2px 6px;border-radius:4px">' + escHtml(s.briefId) + '</span>' +
+            '<span style="flex:1;font-size:12.5px;color:#78350f">' + escHtml(s.title) + '</span>' +
+            '<button class="kr-rr-goto-plan" data-section-id="' + escHtml(s.id) + '" style="' +
+                'padding:5px 10px;background:#d97706;color:#fff;border:none;' +
+                'border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;' +
+                'display:inline-flex;align-items:center;gap:4px">' +
+              '<span>→</span> Vygenerovat' +
+            '</button>' +
+          '</div>'
         ).join('') +
-      '</ul>' +
+      '</div>' +
       '<div style="margin-top:8px;font-size:11px;color:#78350f;font-style:italic">' +
-        'Tip: vygenerujte přes Plan tab → klik na sekci → bulk generate buttons (Decision Layer, KPI Tree). PDF se i tak vyexportuje.' +
+        'Tip: každé tlačítko otevře sekci v Plan tabu kde je AI generator. PDF se i tak vyexportuje s placeholdery.' +
       '</div>' +
     '</div>';
   }
@@ -32081,23 +32091,148 @@ if (document.readyState === 'loading') {
   function renderAiMissing(r) {
     if (r.aiMissing.length === 0) return '';
 
+    // alpha.34: per-item action buttons + bulk option
     return '<div style="' +
         'padding:14px 16px;background:#fef9e7;border-left:4px solid #d97706;' +
-        'border-radius:6px;margin-bottom:14px;display:flex;align-items:flex-start;gap:14px">' +
-      '<div style="flex:1;min-width:0">' +
-        '<div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:6px">' +
+        'border-radius:6px;margin-bottom:14px">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">' +
+        '<div style="font-size:12px;font-weight:700;color:#92400e">' +
           '⚠ AI sekcí k vygenerování: ' + r.aiMissing.length +
         '</div>' +
-        '<div style="font-size:11.5px;color:#78350f;line-height:1.6">' +
-          r.aiMissing.map(s => escHtml(s.title)).join(' · ') +
-        '</div>' +
+        '<button id="kr-rr-generate-ai" style="' +
+            'padding:6px 12px;background:#d97706;color:#fff;border:none;' +
+            'border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;' +
+            'display:inline-flex;align-items:center;gap:4px">' +
+          '<span>↻</span> Generovat vše naráz' +
+        '</button>' +
       '</div>' +
-      '<button id="kr-rr-generate-ai" style="' +
-          'flex-shrink:0;padding:8px 14px;background:#d97706;color:#fff;border:none;' +
-          'border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;' +
-          'display:inline-flex;align-items:center;gap:6px">' +
-          '<span>↻</span> Generovat vše' +
-      '</button>' +
+      '<div style="display:flex;flex-direction:column;gap:6px">' +
+        r.aiMissing.map(s =>
+          '<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:#fff;border-radius:6px">' +
+            '<span style="font-size:11px;font-weight:700;color:#92400e;background:#fef3c7;padding:2px 6px;border-radius:4px">' + escHtml(s.briefId || '') + '</span>' +
+            '<span style="flex:1;font-size:12.5px;color:#78350f">' + escHtml(s.title) + '</span>' +
+            '<button class="kr-rr-goto-plan" data-section-id="' + escHtml(s.id) + '" style="' +
+                'padding:5px 10px;background:#fff;color:#d97706;border:1px solid #d97706;' +
+                'border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;' +
+                'display:inline-flex;align-items:center;gap:4px">' +
+              '<span>→</span> Otevřít' +
+            '</button>' +
+          '</div>'
+        ).join('') +
+      '</div>' +
+    '</div>';
+  }
+
+  /* ─── alpha.34: Advanced AI Generators panel ──────────────────────────
+   * Lists optional/advanced AI features that don't have a dedicated section
+   * in DocumentPlan (they're modal-only). Provides direct entry points so
+   * user doesn't have to remember where to find them.
+   *
+   * Strategy v2 / Bold Move / Execution Plan / Audience Versions all live
+   * as modal flows. Audience Versions especially: only triggered after
+   * Strategy v2 generation modal finishes, so if user closes that modal
+   * they had no way back. This panel fixes that.
+   */
+  function renderAdvancedGenerators() {
+    // Read what's already saved
+    const research = (window.KR.appState && window.KR.appState.getResearch()) || { outputs: null };
+    const outputs = research.outputs || {};
+
+    const items = [
+      {
+        id: 'strategy_v2',
+        title: 'Strategy v2',
+        subtitle: 'Evidence-backed strategie s vrstvami Facts → Insights → Decisions',
+        icon: '⭐',
+        existsKey: 'strategy',
+        canRun: () => true,
+        runLabel: 'Vygenerovat',
+        openLabel: 'Otevřít poslední',
+        action: 'strategy_v2'
+      },
+      {
+        id: 'audience_versions',
+        title: 'Audience Versions',
+        subtitle: '4 verze pro CEO / CMO / Execution / Board (vyžaduje Strategy v2)',
+        icon: '🎭',
+        existsKey: 'audience_versions',
+        canRun: () => Array.isArray(outputs.strategy) && outputs.strategy.length > 0,
+        runLabel: 'Vygenerovat',
+        openLabel: 'Otevřít poslední',
+        action: 'audience_versions'
+      },
+      {
+        id: 'bold_move',
+        title: 'Bold Move',
+        subtitle: 'Konkrétní velký kreativní krok navržený AI z evidence (vyžaduje Strategy v2)',
+        icon: '🎯',
+        existsKey: 'bold_move',
+        canRun: () => Array.isArray(outputs.strategy) && outputs.strategy.length > 0,
+        runLabel: 'Vygenerovat',
+        openLabel: 'Otevřít poslední',
+        action: 'bold_move'
+      },
+      {
+        id: 'execution_plan',
+        title: 'Execution Plan',
+        subtitle: 'Detailní 90-day plán s milestones a metrics (vyžaduje Strategy v2)',
+        icon: '🗓',
+        existsKey: 'execution_plan',
+        canRun: () => Array.isArray(outputs.strategy) && outputs.strategy.length > 0,
+        runLabel: 'Vygenerovat',
+        openLabel: 'Otevřít poslední',
+        action: 'execution_plan'
+      }
+    ];
+
+    return '<div style="' +
+        'padding:14px 16px;background:#f5f3ff;border-left:4px solid #7c3aed;' +
+        'border-radius:6px;margin-bottom:14px">' +
+      '<div style="font-size:12px;font-weight:700;color:#5b21b6;margin-bottom:8px">' +
+        '🎯 Pokročilé AI výstupy (volitelné, ale obohacují PDF)' +
+      '</div>' +
+      '<div style="display:flex;flex-direction:column;gap:6px">' +
+        items.map(it => {
+          const exists = Array.isArray(outputs[it.existsKey]) && outputs[it.existsKey].length > 0;
+          const enabled = it.canRun();
+          const buttons = exists
+            ? '<button class="kr-rr-open-adv" data-action="' + escHtml(it.action) + '" style="' +
+                'padding:5px 10px;background:#7c3aed;color:#fff;border:none;' +
+                'border-radius:5px;font-size:11px;font-weight:600;cursor:pointer">' +
+              '✓ Otevřít' +
+              '</button>' +
+              '<button class="kr-rr-open-adv" data-action="' + escHtml(it.action) + '" data-mode="regen" style="' +
+                'padding:5px 10px;background:#fff;color:#7c3aed;border:1px solid #7c3aed;' +
+                'border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;margin-left:4px">' +
+              '↻ Regenerovat' +
+              '</button>'
+            : enabled
+              ? '<button class="kr-rr-open-adv" data-action="' + escHtml(it.action) + '" style="' +
+                  'padding:5px 10px;background:#7c3aed;color:#fff;border:none;' +
+                  'border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;' +
+                  'display:inline-flex;align-items:center;gap:4px">' +
+                '<span>→</span> ' + escHtml(it.runLabel) +
+                '</button>'
+              : '<span style="font-size:10.5px;color:#9ca3af;font-style:italic">' +
+                'Vyžaduje Strategy v2' +
+                '</span>';
+
+          return '<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:#fff;border-radius:6px;' +
+                  (exists ? 'border-left:3px solid #059669' : '') + '">' +
+            '<span style="font-size:18px;line-height:1;flex-shrink:0">' + it.icon + '</span>' +
+            '<div style="flex:1;min-width:0">' +
+              '<div style="font-size:12.5px;font-weight:700;color:#1a1a2e;margin-bottom:2px">' +
+                escHtml(it.title) +
+                (exists ? '<span style="font-size:10px;color:#059669;font-weight:700;margin-left:6px">✓ vygenerováno</span>' : '') +
+              '</div>' +
+              '<div style="font-size:11px;color:#6b7280;line-height:1.4">' +
+                escHtml(it.subtitle) +
+              '</div>' +
+            '</div>' +
+            '<div style="flex-shrink:0">' + buttons + '</div>' +
+          '</div>';
+        }).join('') +
+      '</div>' +
     '</div>';
   }
 
@@ -32244,6 +32379,117 @@ if (document.readyState === 'loading') {
         }
       });
     }
+
+    /* ─── alpha.34: Deep-link handlers ───────────────────────────── */
+    // 1) "→ Otevřít" / "→ Vygenerovat" buttons in missing lists — switch to
+    //    Plan tab, then open detail panel for that section. User sees the
+    //    AI generator button right there.
+    wrapper.querySelectorAll('.kr-rr-goto-plan').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const sectionId = btn.dataset.sectionId;
+        if (!sectionId) return;
+        // Switch to Plan tab via vendor's tab nav
+        const tabBtns = document.querySelectorAll('nav button');
+        for (const tb of tabBtns) {
+          const span = tb.querySelector('span');
+          if (span && span.textContent.trim() === 'Váš plán') {
+            tb.click();
+            break;
+          }
+        }
+        // Wait for Plan tab to render, then open detail
+        setTimeout(() => {
+          if (window.KR.documentPlan && typeof window.KR.documentPlan.openDetail === 'function') {
+            window.KR.documentPlan.openDetail(sectionId);
+            // Scroll the matching outline row into view
+            setTimeout(() => {
+              const item = document.querySelector('.kr-doc-item[data-section-id="' + sectionId + '"]');
+              if (item) item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 200);
+          }
+        }, 350);
+      });
+    });
+
+    // 2) "Otevřít" / "Vygenerovat" / "Regenerovat" pro pokročilé generators
+    //    Modal-only flows: Strategy v2 / Audience Versions / Bold Move /
+    //    Execution Plan. Each requires different entry — Strategy v2 has its
+    //    own open(). Others need latest Strategy v2 as parameter.
+    wrapper.querySelectorAll('.kr-rr-open-adv').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const action = btn.dataset.action;
+        const mode = btn.dataset.mode; // 'regen' or undefined
+
+        try {
+          const research = (window.KR.appState && window.KR.appState.getResearch()) || { outputs: null };
+          const outputs = research.outputs || {};
+
+          // Strategy v2 doesn't need a parameter
+          if (action === 'strategy_v2') {
+            if (window.KR.ui && window.KR.ui.strategyV2 && typeof window.KR.ui.strategyV2.open === 'function') {
+              window.KR.ui.strategyV2.open();
+            } else {
+              alert('Strategy v2 modul není načtený.');
+            }
+            return;
+          }
+
+          // Other 3 require latest Strategy v2 as parameter
+          const stratList = Array.isArray(outputs.strategy) ? outputs.strategy : [];
+          if (stratList.length === 0) {
+            alert('Pro spuštění této funkce nejdříve vygenerujte Strategy v2.');
+            // Helpful: open Strategy v2 modal
+            if (window.KR.ui && window.KR.ui.strategyV2) window.KR.ui.strategyV2.open();
+            return;
+          }
+          // Latest = last by createdAt or just last entry
+          const latest = stratList[stratList.length - 1];
+          const strategyData = latest.data || latest;
+
+          // Existing output exists and user wants to view it (not regen)
+          const existsKey = action === 'audience_versions' ? 'audience_versions' :
+                           action === 'bold_move' ? 'bold_move' :
+                           action === 'execution_plan' ? 'execution_plan' : null;
+          const existingList = existsKey && Array.isArray(outputs[existsKey]) ? outputs[existsKey] : [];
+
+          if (mode !== 'regen' && existingList.length > 0) {
+            // Open saved version
+            const lastSaved = existingList[existingList.length - 1];
+            const data = lastSaved.data || lastSaved;
+            if (action === 'audience_versions' && window.KR.ui && window.KR.ui.audienceVersions) {
+              if (typeof window.KR.ui.audienceVersions.openSaved === 'function') {
+                window.KR.ui.audienceVersions.openSaved(data);
+              } else {
+                window.KR.ui.audienceVersions.open(strategyData);
+              }
+              return;
+            }
+            if (action === 'bold_move' && window.KR.ui && window.KR.ui.boldMove && typeof window.KR.ui.boldMove.openSaved === 'function') {
+              window.KR.ui.boldMove.openSaved(data);
+              return;
+            }
+            if (action === 'execution_plan' && window.KR.ui && window.KR.ui.executionPlan && typeof window.KR.ui.executionPlan.openSaved === 'function') {
+              window.KR.ui.executionPlan.openSaved(data);
+              return;
+            }
+          }
+
+          // Generate fresh (or no saved version exists)
+          if (action === 'audience_versions' && window.KR.ui && window.KR.ui.audienceVersions) {
+            window.KR.ui.audienceVersions.open(strategyData);
+          } else if (action === 'bold_move' && window.KR.ui && window.KR.ui.boldMove) {
+            window.KR.ui.boldMove.open(strategyData);
+          } else if (action === 'execution_plan' && window.KR.ui && window.KR.ui.executionPlan) {
+            window.KR.ui.executionPlan.open(strategyData);
+          } else {
+            alert('Modul ' + action + ' není načtený.');
+          }
+        } catch (err) {
+          console.error('[reportReadiness] open-adv failed:', err);
+          alert('Chyba: ' + (err.message || err));
+        }
+      });
+    });
   }
 
   /* ─── Main render ──────────────────────────────────────────────────── */
@@ -32281,6 +32527,7 @@ if (document.readyState === 'loading') {
       renderLayer2Suggestion(r) +
       renderCriticalMissing(r) +
       renderAiMissing(r) +
+      renderAdvancedGenerators() +
       // Action bar
       renderActionBar(r);
 
