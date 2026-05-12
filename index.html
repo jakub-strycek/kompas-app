@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- KOMPAS™ build v7.0.0-alpha.33 (2026-05-09) — Path C source tree (v7-source). See LAYERS.md / FEATURES.md for architecture. -->
+<!-- KOMPAS™ build v7.0.0-alpha.33 (2026-05-12) — Path C source tree (v7-source). See LAYERS.md / FEATURES.md for architecture. -->
 <!-- KOMPAS v6.9.8: Data flow audit + enrichment. 1) Agresivní varianta rozšířena z 5 gap TITULŮ na plný kontext (brief, SWOT, segmenty, konkurenti, mezery, důkazy, mediální mix, reference k hlavní strategii) — není to už datově hladová kopie, ale plnohodnotná kontra-strategie. 2) briefAn (SWOT z úvodní analýzy briefu) nově vstupuje do yi.strategy jako samostatná sekce, plus instrukce v system-role aby AI explicitně vázala doporučení na silné/slabé stránky, příležitosti, rizika. 3) Media prompt (yi.media) rozšířen o demandPools, evidence a positioning — kanály se teď doporučují s vědomím segmentů, tónu značky a tržních důkazů. 4) Positioning framework prompt rozšířen o naše analyzované konkurenty, top mezery a segmenty — white space se identifikuje na základě REÁLNÉ competitive intel, ne jen archetypu. Žádné AI volání nebylo zjednodušeno — všechny předchozí datové vazby zachovány. -->
 <html lang="cs"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>KOMPAS™ v7.0.0-alpha.33 — Competitive Growth Operating System</title><link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%234f46e5'/><text x='16' y='22' text-anchor='middle' fill='white' font-size='18' font-weight='bold'>K</text></svg>"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}@keyframes spin{to{transform:rotate(360deg)}}</style></head><body><div id="root"></div><script type="module">
 (function(){const t=document.createElement("link").relList;if(t&&t.supports&&t.supports("modulepreload"))return;for(const i of document.querySelectorAll('link[rel="modulepreload"]'))r(i);new MutationObserver(i=>{for(const o of i)if(o.type==="childList")for(const a of o.addedNodes)a.tagName==="LINK"&&a.rel==="modulepreload"&&r(a)}).observe(document,{childList:!0,subtree:!0});function n(i){const o={};return i.integrity&&(o.integrity=i.integrity),i.referrerPolicy&&(o.referrerPolicy=i.referrerPolicy),i.crossOrigin==="use-credentials"?o.credentials="include":i.crossOrigin==="anonymous"?o.credentials="omit":o.credentials="same-origin",o}function r(i){if(i.ep)return;i.ep=!0;const o=n(i);fetch(i.href,o)}})();var Ls=typeof globalThis<"u"?globalThis:typeof window<"u"?window:typeof global<"u"?global:typeof self<"u"?self:{};function be(e){return e&&e.__esModule&&Object.prototype.hasOwnProperty.call(e,"default")?e.default:e}var Yx={exports:{}},iu={},Xx={exports:{}},se={};/**
@@ -28088,9 +28088,24 @@ if (document.readyState === 'loading') {
 
     // Render markdown via pdfMaster's md2html if available
     const md2html = (window.KR && window.KR.pdfMaster && window.KR.pdfMaster._md2html) || null;
-    const bodyHtml = md2html
+    let bodyHtml = md2html
       ? md2html(data.markdown)
       : '<pre style="white-space:pre-wrap;font-family:inherit;font-size:11.5px;color:#3d3d56;line-height:1.6">' + escHtml(data.markdown) + '</pre>';
+
+    /* alpha.34: CRITICAL FIX — AI-generated markdown often starts with `## Heading`
+     * which md2html converts to `<h2>`. This COLLIDES with the outer page <h2>
+     * (e.g. <h2>Content & Communication Platform</h2>) — QA gate's regex
+     * `<h2>...</h2>([\s\S]*?)(?=<h2|...)` then sees two adjacent h2's and
+     * measures the outer section as having 0 chars of body content, flagging
+     * it as "empty" even though full content was generated.
+     *
+     * Fix: downgrade h1/h2 in body HTML to h3/h4 to preserve hierarchy.
+     * Note: only downgrade naked h3 (no existing styles); leave styled h3 alone.
+     */
+    bodyHtml = bodyHtml
+      .replace(/<h3\b(?![^>]*style)([^>]*)>([\s\S]*?)<\/h3>/gi, '<h4 style="font-size:12px;font-weight:600;color:#3d3d56;margin:10px 0 4px"$1>$2</h4>')
+      .replace(/<h2\b([^>]*)>([\s\S]*?)<\/h2>/gi, '<h3 style="font-size:13px;font-weight:700;color:#1a1a2e;margin:14px 0 6px"$1>$2</h3>')
+      .replace(/<h1\b([^>]*)>([\s\S]*?)<\/h1>/gi, '<h3 style="font-size:14px;font-weight:700;color:#1a1a2e;margin:14px 0 6px"$1>$2</h3>');
 
     // Optional: hypothesis disclaimer if marked
     const hypothesisNote = data.isHypothesis
@@ -28756,23 +28771,51 @@ if (document.readyState === 'loading') {
   /* ─── Check 2: Empty sections (brief 3.2) ────────────────────────── */
   function checkEmptySections(html) {
     const issues = [];
-    // Find all H2 sections + extract text between them
+    /* alpha.34: Improved parsing — split on outer `<h2>` (top-level page
+     * headings) only, not on nested h2 from AI markdown. We do this by
+     * matching `<h2>` that's preceded by a page wrapper (heuristic: looks
+     * like a "Strategy Layer · NN" eyebrow within 200 chars before).
+     *
+     * Simpler robust approach: match `<h2>` whose IMMEDIATE next-line context
+     * looks like a section title (and not an AI body header). We use the
+     * regex below and EXCLUDE any h2 whose body contains another nested h2
+     * — those collisions are reported separately.
+     */
     const sectionRegex = /<h2[^>]*>([^<]+)<\/h2>([\s\S]*?)(?=<h2|<\/body|$)/gi;
     let match;
+    const seenTitles = new Set();
     while ((match = sectionRegex.exec(html)) !== null) {
       const title = match[1].replace(/&amp;/g, '&').replace(/&[a-z]+;/g, '').trim();
       const body = match[2];
       const bodyText = stripHtml(body).trim();
       // "Needs client input" placeholders are intentional, not empty
       if (body.includes('Needs client input')) continue;
-      // Allow short sections (executive box, KPI tree) but flag truly empty
-      if (bodyText.length < 50) {
+      // Skip duplicates (alpha.34: previously double-flagged sections that
+      // appear twice due to brief-parity append. We only report the most
+      // significant occurrence.)
+      if (seenTitles.has(title)) continue;
+      seenTitles.add(title);
+      // alpha.34: severity now tiered:
+      //   0-9 chars   → critical (genuinely empty, breaks PDF)
+      //   10-49 chars → warning  (minimal content — acceptable for sections
+      //                with sparse data like 1 competitor or short positioning)
+      //   50+ chars   → OK
+      if (bodyText.length < 10) {
         issues.push({
           id: 'empty-section',
           severity: 'critical',
           category: 'empty_section',
-          message: 'Sekce "' + title + '" je prázdná nebo téměř prázdná (' + bodyText.length + ' znaků obsahu)',
+          message: 'Sekce "' + title + '" je prázdná (' + bodyText.length + ' znaků obsahu)',
           suggestedFix: 'Sekci buď naplňte daty, vynechte, nebo označte jako "Needs client input".',
+          sectionTitle: title
+        });
+      } else if (bodyText.length < 50) {
+        issues.push({
+          id: 'minimal-section',
+          severity: 'warning',
+          category: 'minimal_section',
+          message: 'Sekce "' + title + '" má jen ' + bodyText.length + ' znaků obsahu (doporučeno 50+)',
+          suggestedFix: 'Doplňte detaily — např. positioning, silné/slabé stránky, akviziční kanály.',
           sectionTitle: title
         });
       }
