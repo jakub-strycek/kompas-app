@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- KOMPAS™ build v7.0.0-alpha.33 (2026-05-12) — Path C source tree (v7-source). See LAYERS.md / FEATURES.md for architecture. -->
+<!-- KOMPAS™ build v7.0.0-alpha.34 (2026-05-12) — Path C source tree (v7-source). See LAYERS.md / FEATURES.md for architecture. -->
 <!-- KOMPAS v6.9.8: Data flow audit + enrichment. 1) Agresivní varianta rozšířena z 5 gap TITULŮ na plný kontext (brief, SWOT, segmenty, konkurenti, mezery, důkazy, mediální mix, reference k hlavní strategii) — není to už datově hladová kopie, ale plnohodnotná kontra-strategie. 2) briefAn (SWOT z úvodní analýzy briefu) nově vstupuje do yi.strategy jako samostatná sekce, plus instrukce v system-role aby AI explicitně vázala doporučení na silné/slabé stránky, příležitosti, rizika. 3) Media prompt (yi.media) rozšířen o demandPools, evidence a positioning — kanály se teď doporučují s vědomím segmentů, tónu značky a tržních důkazů. 4) Positioning framework prompt rozšířen o naše analyzované konkurenty, top mezery a segmenty — white space se identifikuje na základě REÁLNÉ competitive intel, ne jen archetypu. Žádné AI volání nebylo zjednodušeno — všechny předchozí datové vazby zachovány. -->
-<html lang="cs"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>KOMPAS™ v7.0.0-alpha.33 — Competitive Growth Operating System</title><link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%234f46e5'/><text x='16' y='22' text-anchor='middle' fill='white' font-size='18' font-weight='bold'>K</text></svg>"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}@keyframes spin{to{transform:rotate(360deg)}}</style></head><body><div id="root"></div><script type="module">
+<html lang="cs"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>KOMPAS™ v7.0.0-alpha.34 — Competitive Growth Operating System</title><link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%234f46e5'/><text x='16' y='22' text-anchor='middle' fill='white' font-size='18' font-weight='bold'>K</text></svg>"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}@keyframes spin{to{transform:rotate(360deg)}}</style></head><body><div id="root"></div><script type="module">
 (function(){const t=document.createElement("link").relList;if(t&&t.supports&&t.supports("modulepreload"))return;for(const i of document.querySelectorAll('link[rel="modulepreload"]'))r(i);new MutationObserver(i=>{for(const o of i)if(o.type==="childList")for(const a of o.addedNodes)a.tagName==="LINK"&&a.rel==="modulepreload"&&r(a)}).observe(document,{childList:!0,subtree:!0});function n(i){const o={};return i.integrity&&(o.integrity=i.integrity),i.referrerPolicy&&(o.referrerPolicy=i.referrerPolicy),i.crossOrigin==="use-credentials"?o.credentials="include":i.crossOrigin==="anonymous"?o.credentials="omit":o.credentials="same-origin",o}function r(i){if(i.ep)return;i.ep=!0;const o=n(i);fetch(i.href,o)}})();var Ls=typeof globalThis<"u"?globalThis:typeof window<"u"?window:typeof global<"u"?global:typeof self<"u"?self:{};function be(e){return e&&e.__esModule&&Object.prototype.hasOwnProperty.call(e,"default")?e.default:e}var Yx={exports:{}},iu={},Xx={exports:{}},se={};/**
  * @license React
  * react.production.min.js
@@ -24211,7 +24211,7 @@ if (document.readyState === 'loading') {
     // Wire up
     const close = function () {
       if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
-      // alpha.33: cleanup keydown listener (was only removed on ESC press, leaking on click-close)
+      // alpha.34: cleanup keydown listener (was only removed on ESC press, leaking on click-close)
       try { document.removeEventListener('keydown', escHandler); } catch (_) {}
     };
 
@@ -27042,9 +27042,56 @@ if (document.readyState === 'loading') {
 
   function open(state, options) {
     const html = build(state, options);
+
+    /* alpha.34: prefer iframe-based print (no pop-up blocker issues with
+     * async user gesture loss). Same fix as pdfMaster.open. */
+    try {
+      // Hidden iframe
+      const iframe = document.createElement('iframe');
+      iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
+      iframe.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(iframe);
+
+      // User feedback toast
+      const toast = document.createElement('div');
+      toast.textContent = 'Otevírám okno tisku — uložte jako PDF…';
+      toast.style.cssText =
+        'position:fixed;bottom:24px;right:24px;z-index:99999;' +
+        'padding:14px 20px;background:#059669;color:#fff;border-radius:10px;' +
+        'font-family:inherit;font-size:14px;font-weight:600;' +
+        'box-shadow:0 4px 16px rgba(0,0,0,0.2)';
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 4500);
+
+      const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+      iframeDoc.open();
+      iframeDoc.write(html);
+      iframeDoc.close();
+
+      const triggerPrint = () => {
+        try {
+          const w = iframe.contentWindow;
+          if (w && typeof w.focus === 'function') w.focus();
+          if (w && typeof w.print === 'function') w.print();
+        } catch (e) { console.warn('[pdfV2] print() failed:', e); }
+      };
+      if (iframeDoc.readyState === 'complete') setTimeout(triggerPrint, 200);
+      else { iframe.onload = () => setTimeout(triggerPrint, 200); setTimeout(triggerPrint, 1200); }
+
+      setTimeout(() => { try { iframe.remove(); } catch (_) {} }, 60000);
+      return iframe;
+    } catch (e) {
+      console.warn('[pdfV2] iframe failed, fallback to window.open:', e);
+    }
+
+    // Fallback: window.open (may be blocked by browser)
     const win = window.open('', '_blank', 'width=900,height=1100');
     if (!win) {
-      alert('Pop-up blocker zablokoval otevření okna. Povolte popups pro tuto stránku.');
+      alert(
+        'Tisk se nepodařilo spustit. Možné příčiny:\n\n' +
+        '• Prohlížeč zablokoval pop-up okno (povolte popups pro tuto stránku)\n' +
+        '• Klikněte ještě jednou — někdy stačí druhý pokus'
+      );
       return null;
     }
     win.document.write(html);
@@ -27776,9 +27823,92 @@ if (document.readyState === 'loading') {
   function open(state, opts) {
     opts = opts || {};
     const html = build(state, opts);
+
+    /* alpha.34: CRITICAL FIX — window.open() silently fails when called from
+     * async context (after `await show(modal)`). Browsers (Chrome, Edge, Safari)
+     * treat user gesture as lost across await/setTimeout boundaries → pop-up
+     * blocker rejects, but pdfMaster.open returned silently. User clicked
+     * "Stáhnout PDF" in modal and saw NOTHING happen.
+     *
+     * Fix: use hidden iframe for print rendering. iframes have no pop-up
+     * restrictions because they're not new windows. Browser print dialog still
+     * triggers from iframe.contentWindow.print(). After print (or after a
+     * timeout for users who cancel print), iframe is removed.
+     *
+     * Fallback: if iframe approach fails (very rare browser quirks), fall back
+     * to window.open and surface the actual error to the user.
+     */
+    try {
+      return openViaIframe(html);
+    } catch (e) {
+      console.warn('[pdfMaster] iframe print failed, falling back to window.open:', e);
+      return openViaWindowOpen(html);
+    }
+  }
+
+  function openViaIframe(html) {
+    // Create hidden iframe
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
+    iframe.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(iframe);
+
+    // Show user feedback — print dialog can take a moment to appear
+    const toast = document.createElement('div');
+    toast.textContent = 'Otevírám okno tisku — uložte jako PDF…';
+    toast.style.cssText =
+      'position:fixed;bottom:24px;right:24px;z-index:99999;' +
+      'padding:14px 20px;background:#059669;color:#fff;border-radius:10px;' +
+      'font-family:inherit;font-size:14px;font-weight:600;' +
+      'box-shadow:0 4px 16px rgba(0,0,0,0.2)';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 4500);
+
+    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+    iframeDoc.open();
+    iframeDoc.write(html);
+    iframeDoc.close();
+
+    // Wait for layout, fonts, images to settle
+    const triggerPrint = () => {
+      try {
+        const win = iframe.contentWindow;
+        if (win && typeof win.focus === 'function') win.focus();
+        if (win && typeof win.print === 'function') {
+          win.print();
+        }
+      } catch (e) {
+        console.warn('[pdfMaster] print() failed:', e);
+      }
+    };
+
+    // Use onload for guaranteed render, plus a fallback timer
+    if (iframeDoc.readyState === 'complete') {
+      setTimeout(triggerPrint, 200);
+    } else {
+      iframe.onload = () => setTimeout(triggerPrint, 200);
+      setTimeout(triggerPrint, 1200); // safety fallback if onload never fires
+    }
+
+    // Cleanup iframe after print dialog closes. Browsers don't reliably notify
+    // us when print dialog closes, so we use a long timeout. The iframe is
+    // hidden and 0×0 so leaving it briefly causes no visible issue.
+    setTimeout(() => {
+      try { iframe.remove(); } catch (_) {}
+    }, 60000);
+
+    return iframe;
+  }
+
+  function openViaWindowOpen(html) {
     const win = window.open('', '_blank', 'width=900,height=1100');
     if (!win) {
-      alert('Pop-up blocker zablokoval otevření okna. Povolte popups pro tuto stránku.');
+      alert(
+        'Tisk se nepodařilo spustit. Možné příčiny:\n\n' +
+        '• Prohlížeč zablokoval pop-up okno (povolte popups pro tuto stránku)\n' +
+        '• Klikněte ještě jednou — někdy stačí druhý pokus\n\n' +
+        'Pokud problém přetrvává, použijte Plan tab → Export → tlačítko Master PDF přímo.'
+      );
       return null;
     }
     win.document.write(html);
@@ -29687,7 +29817,7 @@ if (document.readyState === 'loading') {
 
     const close = function () {
       if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
-      // alpha.33: cleanup keydown listener (was only removed on ESC press, leaking on click-close)
+      // alpha.34: cleanup keydown listener (was only removed on ESC press, leaking on click-close)
       try { document.removeEventListener('keydown', escHandler); } catch (_) {}
     };
 
@@ -30324,8 +30454,17 @@ if (document.readyState === 'loading') {
     }
 
     if (result.action === 'export') {
-      // Actually open the PDF
-      window.KR.pdfMaster.open(state, opts);
+      // alpha.34 fix: pdfMaster.open() is monkey-patched to route through
+      // runWithGate (this very function). Calling pdfMaster.open() again
+      // here would either infinitely recurse or return a Promise instead of
+      // the actual print iframe — user sees "Stáhnout PDF" but nothing
+      // happens. Use _openRaw (saved unwrapped version) for the actual
+      // rendering. Fallback to bypassGate flag if _openRaw missing.
+      if (typeof window.KR.pdfMaster._openRaw === 'function') {
+        window.KR.pdfMaster._openRaw(state, opts);
+      } else {
+        window.KR.pdfMaster.open(state, Object.assign({}, opts, { bypassGate: true }));
+      }
     }
   }
 
@@ -30641,7 +30780,7 @@ if (document.readyState === 'loading') {
     if (!result || !result.checks) return result;
 
     /* ─── Replace check #9 (missing_management_ask) ───────────────── */
-    /* alpha.33 fix: downgrade from 'critical' to 'warning'. These 4 missing-
+    /* alpha.34 fix: downgrade from 'critical' to 'warning'. These 4 missing-
      * section checks (managementAsk, risks, experimentBacklog, kpiTree) flagged
      * Layer 1 users (who hadn't yet clicked AI generate buttons) as "Export
      * blokován". Per Jakub's mental model: AI baseline is valid, missing AI-
@@ -31079,8 +31218,8 @@ if (document.readyState === 'loading') {
         missing: 0,
         skipped: 0,
         static: 0,
-        qaCritical: 0,            // alpha.33: kept for backward-compat (always 0 now)
-        qaCriticalMissing: 0,     // alpha.33: kept for backward-compat (always 0 now)
+        qaCritical: 0,            // alpha.34: kept for backward-compat (always 0 now)
+        qaCriticalMissing: 0,     // alpha.34: kept for backward-compat (always 0 now)
         qaRecommended: 0,
         qaRecommendedMissing: 0
       }
@@ -31840,7 +31979,7 @@ if (document.readyState === 'loading') {
       });
     }
 
-    // 5. Recommended sections that are missing (alpha.33: was "critical missing"
+    // 5. Recommended sections that are missing (alpha.34: was "critical missing"
     // for AI-generated sections; now treated as recommended improvements)
     const recommendedMissing = [];
     if (diag) {
@@ -31882,7 +32021,7 @@ if (document.readyState === 'loading') {
     const hypotheses = evidence.filter(e => e.classification === 'strategic_hypothesis').length;
 
     // 9. Verdict
-    /* alpha.33: rebalanced for Layer 1 baseline. Old behavior: 4 missing AI-
+    /* alpha.34: rebalanced for Layer 1 baseline. Old behavior: 4 missing AI-
      * generated sections (managementAsk, risks, experiments, kpiTree) all
      * triggered "Export blokován". New behavior: those 4 are now qaRecommended
      * (warnings, not blocks). Export only blocks if genuinely broken state
