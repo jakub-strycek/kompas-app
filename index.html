@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- KOMPAS™ build v7.0.0-alpha.37 (2026-05-12) — Path C source tree (v7-source). See LAYERS.md / FEATURES.md for architecture. -->
+<!-- KOMPAS™ build v7.0.0-alpha.41 (2026-05-12) — Path C source tree (v7-source). See LAYERS.md / FEATURES.md for architecture. -->
 <!-- KOMPAS v6.9.8: Data flow audit + enrichment. 1) Agresivní varianta rozšířena z 5 gap TITULŮ na plný kontext (brief, SWOT, segmenty, konkurenti, mezery, důkazy, mediální mix, reference k hlavní strategii) — není to už datově hladová kopie, ale plnohodnotná kontra-strategie. 2) briefAn (SWOT z úvodní analýzy briefu) nově vstupuje do yi.strategy jako samostatná sekce, plus instrukce v system-role aby AI explicitně vázala doporučení na silné/slabé stránky, příležitosti, rizika. 3) Media prompt (yi.media) rozšířen o demandPools, evidence a positioning — kanály se teď doporučují s vědomím segmentů, tónu značky a tržních důkazů. 4) Positioning framework prompt rozšířen o naše analyzované konkurenty, top mezery a segmenty — white space se identifikuje na základě REÁLNÉ competitive intel, ne jen archetypu. Žádné AI volání nebylo zjednodušeno — všechny předchozí datové vazby zachovány. -->
-<html lang="cs"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>KOMPAS™ v7.0.0-alpha.37 — Competitive Growth Operating System</title><link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%234f46e5'/><text x='16' y='22' text-anchor='middle' fill='white' font-size='18' font-weight='bold'>K</text></svg>"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}@keyframes spin{to{transform:rotate(360deg)}}</style></head><body><div id="root"></div><script type="module">
+<html lang="cs"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>KOMPAS™ v7.0.0-alpha.41 — Competitive Growth Operating System</title><link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%234f46e5'/><text x='16' y='22' text-anchor='middle' fill='white' font-size='18' font-weight='bold'>K</text></svg>"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}@keyframes spin{to{transform:rotate(360deg)}}</style></head><body><div id="root"></div><script type="module">
 (function(){const t=document.createElement("link").relList;if(t&&t.supports&&t.supports("modulepreload"))return;for(const i of document.querySelectorAll('link[rel="modulepreload"]'))r(i);new MutationObserver(i=>{for(const o of i)if(o.type==="childList")for(const a of o.addedNodes)a.tagName==="LINK"&&a.rel==="modulepreload"&&r(a)}).observe(document,{childList:!0,subtree:!0});function n(i){const o={};return i.integrity&&(o.integrity=i.integrity),i.referrerPolicy&&(o.referrerPolicy=i.referrerPolicy),i.crossOrigin==="use-credentials"?o.credentials="include":i.crossOrigin==="anonymous"?o.credentials="omit":o.credentials="same-origin",o}function r(i){if(i.ep)return;i.ep=!0;const o=n(i);fetch(i.href,o)}})();var Ls=typeof globalThis<"u"?globalThis:typeof window<"u"?window:typeof global<"u"?global:typeof self<"u"?self:{};function be(e){return e&&e.__esModule&&Object.prototype.hasOwnProperty.call(e,"default")?e.default:e}var Yx={exports:{}},iu={},Xx={exports:{}},se={};/**
  * @license React
  * react.production.min.js
@@ -29893,29 +29893,17 @@ if (document.readyState === 'loading') {
 
     document.getElementById('kqa-proceed-v1').onclick = function () {
       if (!result.canProceed) return;
-      const confirmed = window.confirm(
-        'Standard PDF je legacy varianta — používá původní renderer bez Phase 1 cleaneru a evidence classifications. ' +
-        'Doporučujeme Senior Consulting PDF.\n\n' +
-        'Pokračovat se Standard PDF?'
-      );
-      if (!confirmed) return;
+      // alpha.38: removed confirm() — button label "Standard PDF (legacy)" + tooltip
+      // already signal the choice. User explicitly clicked this variant, respect that.
       close();
       onProceedV1(result);
     };
 
     document.getElementById('kqa-proceed-v2').onclick = function () {
       if (!result.canProceed) return;
-      
-      if (!hasDecisionLayer) {
-        const confirmed = window.confirm(
-          'Decision Layer nebyl vygenerován.\n\n' +
-          'Senior PDF se otevře jen s 2 vrstvami (Strategy + Evidence). Top board vrstva (Executive Decision Page, Must-Win Battles, Management Ask) bude prázdná nebo zobrazí placeholder.\n\n' +
-          'Doporučujeme nejdřív vygenerovat Decision Layer v záložce AI Enhancements.\n\n' +
-          'Přesto pokračovat?'
-        );
-        if (!confirmed) return;
-      }
-      
+      // alpha.38: removed confirm() about missing Decision Layer. The modal already
+      // shows AI Enhancements tab with Decision Layer status. If user proceeds anyway,
+      // respect that — Decision Layer placeholders are clearly marked in PDF.
       close();
       onProceedV2(result);
     };
@@ -29963,7 +29951,7 @@ if (document.readyState === 'loading') {
       const ignoreAllBtn = document.getElementById('kqa-ignore-all');
       if (ignoreAllBtn) {
         ignoreAllBtn.onclick = function () {
-          if (!window.confirm('Skrýt všechna ' + (result.issues || []).filter(i => !qaIgn.isIssueIgnored(qaIgn.makeIssueId(i))).length + ' upozornění? Lze obnovit přes "Obnovit všechna" pod seznamem.')) return;
+          // alpha.38: no confirm() — action is reversible via "Obnovit všechna"
           result.issues.forEach(i => qaIgn.ignoreIssue(qaIgn.makeIssueId(i)));
           refreshIssuesTab();
         };
@@ -30890,9 +30878,12 @@ if (document.readyState === 'loading') {
     const missing = expected.filter(k => !cs[k] || !cs[k].markdown);
     if (!missing.length) return { skipped: true, reason: 'all cached' };
 
+    // alpha.38: removed window.confirm() prompt. Callers control behavior
+    // via opts.force (always generate) or by simply not calling this fn.
+    // The "ask first" semantics are now handled by modal buttons (Vyřešit vše naráz).
     if (!opts.force && opts.askFirst) {
-      const proceed = window.confirm('Chybí ' + missing.length + ' AI konzultantských sekcí. Vygenerovat teď? (cca 60–90s)');
-      if (!proceed) return { skipped: true, reason: 'user cancelled' };
+      // Legacy callers using askFirst: now treated as "skip if not forced".
+      return { skipped: true, reason: 'no-prompt-mode' };
     }
 
     const progress = showProgressModal('Generuji konzultantský pack');
@@ -33003,15 +32994,11 @@ if (document.readyState === 'loading') {
 
       try {
         await window.KR.pdf.export('SENIOR_REPORT', {
-          onMissingPack: async (missing) => {
-            const ok = confirm(
-              'Chybí ' + missing.length + ' AI sekcí (' +
-              missing.slice(0, 3).join(', ') + (missing.length > 3 ? '...' : '') +
-              ').\n\nVygenerovat je teď před exportem? (cca 30-60 sekund)\n\n' +
-              'OK = generovat\nCancel = exportovat bez nich (placeholdery)'
-            );
-            return ok ? 'generate' : 'skip';
-          },
+          // alpha.38: NO confirm() prompt. User already clicked Master PDF —
+          // that's their decision. If they want missing sections filled in,
+          // they click "🪄 Vyřešit vše naráz" in the modal BEFORE clicking
+          // Master PDF. Default behavior = quick export with placeholders.
+          onMissingPack: async () => 'skip',
           onProgress: (msg) => {
             btn.innerHTML = '<span>⏳</span> ' + escHtml(msg).slice(0, 40);
           }
@@ -34475,6 +34462,1687 @@ if (document.readyState === 'loading') {
   };
 
   console.info('[KOMPAS] Phase 19: Affinity Media (B19) loaded.');
+})();
+/* ========================================================================
+   Phase 20: Čistý PDF Builder (alpha.39)
+
+   PURPOSE
+   -------
+   Complete data dump in linear per-module order. Minimal styling.
+   For archive, audit, handover use cases — "tady je všechno co aplikace má".
+
+   STRUCTURE (linear, per-module)
+   ------------------------------
+   1. Brief
+   2. Konkurenti (incl. raw research, scores, deep data)
+   3. Zákazníci (demand pools)
+   4. Důkazy
+   5. Mezery
+   6. Pozicioning
+   7. Média (top 30 affinity + channel strategy)
+   8. Strategický plán (Strategy + Decision Layer)
+   9. Konzultantské sekce (B22-B28)
+   10. Konzultantský pack (P1-P8 if generated)
+   11. Methodology + Source Appendix
+
+   DESIGN PRINCIPLES
+   -----------------
+   - Black text on white, no gradients
+   - Simple H1/H2/H3 hierarchy
+   - Tables for structured data, prose for narratives
+   - No consultant headlines, no "How to read", no decorative boxes
+   - No storytelling — just sections + content
+   - Easy to print, easy to grep, easy to archive
+   ======================================================================== */
+
+(function () {
+  'use strict';
+
+  if (window.KR && window.KR.pdfClean) {
+    console.warn('[KOMPAS] pdfClean already loaded; skipping.');
+    return;
+  }
+
+  /* ─── Helpers ──────────────────────────────────────────────────────── */
+
+  function escHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function md2html(md) {
+    if (!md) return '';
+    if (window.KR.pdfMaster && typeof window.KR.pdfMaster._md2html === 'function') {
+      return window.KR.pdfMaster._md2html(md);
+    }
+    // Minimal fallback
+    return '<pre style="white-space:pre-wrap;font-family:Inter,sans-serif;font-size:12px;color:#1f2937;line-height:1.6;margin:0">' +
+           escHtml(md) + '</pre>';
+  }
+
+  function getState() {
+    if (window.KR.appState && typeof window.KR.appState.getKompas === 'function') {
+      return window.KR.appState.getKompas() || {};
+    }
+    try { return JSON.parse(localStorage.getItem('kompas_v5') || '{}'); } catch (e) { return {}; }
+  }
+
+  /* ─── Section builders ─────────────────────────────────────────────── */
+
+  function sectionH1(label, num) {
+    return (
+      '<div style="page-break-before:always;padding-top:14px;margin-bottom:18px;border-bottom:2px solid #1a1a2e;padding-bottom:8px">' +
+        '<div style="font-size:10px;font-weight:600;color:#6b7280;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:3px">Sekce ' + num + '</div>' +
+        '<h1 style="margin:0;font-size:22px;font-weight:700;color:#1a1a2e;letter-spacing:-0.01em">' + escHtml(label) + '</h1>' +
+      '</div>'
+    );
+  }
+
+  function emptyBlock(label) {
+    return '<p style="font-size:12px;color:#9ca3af;font-style:italic;padding:10px 14px;background:#fafafa;border:1px dashed #e5e7eb;border-radius:6px;margin:8px 0">' + escHtml(label) + '</p>';
+  }
+
+  /* ─── 0. Cover page (minimal) ──────────────────────────────────────── */
+
+  function buildCover(state) {
+    const b = state.brief || {};
+    const now = new Date();
+    return (
+      '<div style="padding:60px 50px;text-align:left;page-break-after:always">' +
+        '<div style="font-size:11px;font-weight:600;color:#6b7280;letter-spacing:0.16em;text-transform:uppercase;margin-bottom:60px">KOMPAS™ — Map → Gap → Mix</div>' +
+        '<h1 style="margin:0 0 8px;font-size:32px;font-weight:700;color:#1a1a2e;letter-spacing:-0.02em">' + escHtml(b.clientName || 'KOMPAS Report') + '</h1>' +
+        '<div style="font-size:14px;color:#4b5563;margin-bottom:40px">' +
+          (b.segment ? escHtml(b.segment) + ' · ' : '') +
+          (b.product ? escHtml(b.product) : '') +
+        '</div>' +
+        '<div style="font-size:11px;color:#6b7280;line-height:1.7">' +
+          'Vygenerováno: ' + escHtml(now.toLocaleString('cs-CZ')) + '<br>' +
+          'Typ exportu: <strong>Čistý PDF — kompletní data</strong><br>' +
+          'Účel: Archiv · Audit · Handover · Reference' +
+        '</div>' +
+        '<div style="position:absolute;bottom:50px;left:50px;font-size:10px;color:#9ca3af">' +
+          'Lineární per-module pořadí. Minimalistický styl. Veškerý vygenerovaný obsah aplikace.' +
+        '</div>' +
+      '</div>'
+    );
+  }
+
+  /* ─── 1. Brief ─────────────────────────────────────────────────────── */
+
+  function buildBrief(state) {
+    const b = state.brief || {};
+    let body = sectionH1('Brief', '1');
+
+    const fields = [
+      ['clientName', 'Klient'],
+      ['product', 'Produkt / Služba'],
+      ['segment', 'Segment / Industry'],
+      ['audience', 'Cílová skupina'],
+      ['goals', 'Cíle'],
+      ['budget', 'Rozpočet'],
+      ['currentMarketing', 'Současný marketing'],
+      ['revenueDriver', 'Hlavní revenue driver'],
+      ['strengths', 'Silné stránky'],
+      ['weaknesses', 'Slabé stránky'],
+      ['bizModel', 'Business model']
+    ];
+
+    body += '<table style="width:100%;border-collapse:collapse;font-size:12px;color:#1f2937">';
+    fields.forEach(([k, label]) => {
+      const v = b[k];
+      if (v) {
+        body += '<tr style="border-bottom:1px solid #f3f4f6">' +
+          '<td style="padding:8px 10px;color:#6b7280;font-weight:600;width:200px;vertical-align:top">' + escHtml(label) + '</td>' +
+          '<td style="padding:8px 10px;line-height:1.6">' + escHtml(v) + '</td>' +
+        '</tr>';
+      }
+    });
+    body += '</table>';
+
+    if (Object.keys(b).filter(k => b[k]).length === 0) {
+      body += emptyBlock('Brief není vyplněný.');
+    }
+
+    return body;
+  }
+
+  /* ─── 2. Konkurenti ────────────────────────────────────────────────── */
+
+  function buildCompetitors(state) {
+    const comps = state.competitors || [];
+    let body = sectionH1('Konkurenti (' + comps.length + ')', '2');
+
+    if (comps.length === 0) {
+      return body + emptyBlock('Žádní konkurenti nejsou definovaní.');
+    }
+
+    comps.forEach((c, i) => {
+      body += '<div style="margin-bottom:20px;page-break-inside:avoid">' +
+        '<h3 style="margin:18px 0 6px;font-size:14px;font-weight:700;color:#1a1a2e">' +
+          (i + 1) + '. ' + escHtml(c.name || '—') +
+          (c.type ? ' <span style="font-size:10px;font-weight:600;color:#6b7280;background:#f3f4f6;padding:2px 8px;border-radius:100px;margin-left:6px">' + escHtml(c.type) + '</span>' : '') +
+        '</h3>';
+
+      if (c.positioning) {
+        body += '<p style="font-size:12px;color:#4b5563;margin:0 0 8px;font-style:italic">' + escHtml(c.positioning) + '</p>';
+      }
+
+      if (c.scores) {
+        body += '<table style="width:100%;border-collapse:collapse;font-size:11px;margin:6px 0">' +
+          '<tr style="background:#fafafa">' +
+            '<th style="text-align:left;padding:5px 8px;color:#6b7280;font-weight:600;width:25%">Need-fit</th>' +
+            '<th style="text-align:left;padding:5px 8px;color:#6b7280;font-weight:600;width:25%">Reach</th>' +
+            '<th style="text-align:left;padding:5px 8px;color:#6b7280;font-weight:600;width:25%">Trust</th>' +
+            '<th style="text-align:left;padding:5px 8px;color:#6b7280;font-weight:600;width:25%">Friction</th>' +
+          '</tr>' +
+          '<tr>' +
+            '<td style="padding:5px 8px;color:#1f2937;font-weight:600">' + (c.scores.needFit || 0) + '/10</td>' +
+            '<td style="padding:5px 8px;color:#1f2937;font-weight:600">' + (c.scores.reach || 0) + '/10</td>' +
+            '<td style="padding:5px 8px;color:#1f2937;font-weight:600">' + (c.scores.trust || 0) + '/10</td>' +
+            '<td style="padding:5px 8px;color:#1f2937;font-weight:600">' + (c.scores.friction || 0) + '/10</td>' +
+          '</tr>' +
+        '</table>';
+      }
+
+      if (c.growth) {
+        body += '<p style="font-size:11px;color:#4b5563;margin:4px 0">' +
+          '<strong>Růst:</strong> ' + escHtml(c.growth.trend || '—') +
+          (c.growth.speed ? ' (' + escHtml(c.growth.speed) + ')' : '') +
+          (c.growth.driver ? ' · ' + escHtml(c.growth.driver) : '') +
+        '</p>';
+      }
+
+      // Strengths / Weaknesses / Blind spots
+      [['strengths', 'Silné stránky'], ['weaknesses', 'Slabé stránky'], ['blindspots', 'Blind spots']].forEach(([k, label]) => {
+        if (Array.isArray(c[k]) && c[k].length) {
+          body += '<p style="font-size:11px;color:#1f2937;margin:4px 0"><strong>' + label + ':</strong></p>' +
+            '<ul style="margin:2px 0 6px 18px;font-size:11px;color:#4b5563;line-height:1.6">' +
+              c[k].map(x => '<li>' + escHtml(x) + '</li>').join('') +
+            '</ul>';
+        }
+      });
+
+      // Deep research
+      if (c.rawResearch) {
+        body += '<details style="margin:8px 0;page-break-inside:avoid"><summary style="cursor:pointer;font-size:11px;font-weight:600;color:#4f46e5;padding:4px 0">Hloubkový průzkum (' + c.rawResearch.length + ' znaků)</summary>' +
+          '<div style="padding:10px 12px;background:#fafafa;border-radius:6px;font-size:11px;color:#1f2937;line-height:1.6;margin-top:6px;white-space:pre-wrap">' +
+            escHtml(c.rawResearch) +
+          '</div>' +
+        '</details>';
+      }
+
+      // Traffic data
+      if (c.traffic) {
+        body += '<p style="font-size:11px;color:#1f2937;margin:6px 0"><strong>Návštěvnost:</strong> ' +
+          (c.traffic.monthlyVisits || '?') + ' visits/měs' +
+          (c.traffic.bounceRate ? ' · Bounce: ' + escHtml(c.traffic.bounceRate) : '') +
+          (c.traffic.avgDuration ? ' · Délka: ' + escHtml(c.traffic.avgDuration) : '') +
+        '</p>';
+      }
+
+      // Social profiles
+      if (c.social && c.social.profiles && c.social.profiles.length) {
+        body += '<p style="font-size:11px;color:#1f2937;margin:6px 0 2px"><strong>Sociální sítě:</strong></p>' +
+          '<ul style="margin:2px 0 6px 18px;font-size:11px;color:#4b5563;line-height:1.6">' +
+            c.social.profiles.map(p => '<li>' + escHtml(p.platform || '?') + ': ' + escHtml(p.postingFrequency || '?') + (p.followers ? ' · ' + escHtml(p.followers) : '') + '</li>').join('') +
+          '</ul>';
+      }
+
+      body += '</div>';
+    });
+
+    return body;
+  }
+
+  /* ─── 3. Zákazníci (demand pools) ──────────────────────────────────── */
+
+  function buildCustomers(state) {
+    const pools = state.demandPools || [];
+    let body = sectionH1('Zákazníci — poptávkové segmenty (' + pools.length + ')', '3');
+
+    if (pools.length === 0) {
+      return body + emptyBlock('Žádné poptávkové segmenty nejsou definované.');
+    }
+
+    pools.forEach((p, i) => {
+      body += '<div style="margin-bottom:14px;page-break-inside:avoid;padding:12px 14px;background:#fafafa;border-radius:6px;border-left:3px solid #4f46e5">' +
+        '<div style="font-size:13px;font-weight:700;color:#1a1a2e;margin-bottom:5px">' + (i + 1) + '. ' + escHtml(p.name || '—') + '</div>' +
+        '<table style="width:100%;font-size:11px;color:#1f2937;line-height:1.6">';
+
+      if (p.situation) body += '<tr><td style="padding:2px 0;color:#6b7280;width:130px;vertical-align:top"><strong>Situace:</strong></td><td>' + escHtml(p.situation) + '</td></tr>';
+      if (p.urgency) body += '<tr><td style="padding:2px 0;color:#6b7280;vertical-align:top"><strong>Naléhavost:</strong></td><td>' + escHtml(p.urgency) + '</td></tr>';
+      if (p.willingness != null) body += '<tr><td style="padding:2px 0;color:#6b7280;vertical-align:top"><strong>Ochota platit:</strong></td><td>' + p.willingness + '/10</td></tr>';
+      if (p.alternatives) body += '<tr><td style="padding:2px 0;color:#6b7280;vertical-align:top"><strong>Alternativy:</strong></td><td>' + escHtml(p.alternatives) + '</td></tr>';
+      if (p.value) body += '<tr><td style="padding:2px 0;color:#6b7280;vertical-align:top"><strong>Hodnota:</strong></td><td>' + escHtml(String(p.value)) + '</td></tr>';
+
+      body += '</table></div>';
+    });
+
+    return body;
+  }
+
+  /* ─── 4. Důkazy ────────────────────────────────────────────────────── */
+
+  function buildEvidence(state) {
+    const ev = state.evidence || [];
+    let body = sectionH1('Důkazy z trhu (' + ev.length + ')', '4');
+
+    if (ev.length === 0) {
+      return body + emptyBlock('Žádné důkazy nejsou v knihovně.');
+    }
+
+    body += '<table style="width:100%;border-collapse:collapse;font-size:11px;color:#1f2937">' +
+      '<thead><tr style="background:#fafafa;border-bottom:2px solid #e5e7eb">' +
+        '<th style="text-align:left;padding:7px 8px;color:#6b7280;font-weight:600;width:30px">#</th>' +
+        '<th style="text-align:left;padding:7px 8px;color:#6b7280;font-weight:600">Tvrzení</th>' +
+        '<th style="text-align:left;padding:7px 8px;color:#6b7280;font-weight:600;width:80px">Páka</th>' +
+        '<th style="text-align:left;padding:7px 8px;color:#6b7280;font-weight:600;width:120px">Klasifikace</th>' +
+        '<th style="text-align:left;padding:7px 8px;color:#6b7280;font-weight:600;width:80px">Confidence</th>' +
+      '</tr></thead><tbody>';
+
+    ev.forEach((e, i) => {
+      body += '<tr style="border-bottom:1px solid #f3f4f6;page-break-inside:avoid">' +
+        '<td style="padding:7px 8px;color:#9ca3af;vertical-align:top">' + (i + 1) + '</td>' +
+        '<td style="padding:7px 8px;line-height:1.5;vertical-align:top">' +
+          '<div style="font-weight:600">' + escHtml(e.claim || '—') + '</div>' +
+          (e.implication ? '<div style="font-size:10px;color:#6b7280;margin-top:3px"><strong>Dopad:</strong> ' + escHtml(e.implication) + '</div>' : '') +
+          (e.source ? '<div style="font-size:10px;color:#9ca3af;margin-top:2px">' + escHtml(e.source) + (e.freshness ? ' · ' + escHtml(e.freshness) : '') + '</div>' : '') +
+        '</td>' +
+        '<td style="padding:7px 8px;color:#1f2937;vertical-align:top">' + escHtml(e.lever || '—') + '</td>' +
+        '<td style="padding:7px 8px;color:#4b5563;vertical-align:top;font-size:10px">' + escHtml(e.classification || '—') + '</td>' +
+        '<td style="padding:7px 8px;color:#1f2937;vertical-align:top">' + (e.confidence != null ? e.confidence + '%' : '—') + '</td>' +
+      '</tr>';
+    });
+
+    body += '</tbody></table>';
+
+    return body;
+  }
+
+  /* ─── 5. Mezery ────────────────────────────────────────────────────── */
+
+  function buildGaps(state) {
+    const gaps = state.gaps || [];
+    let body = sectionH1('Mezery — co konkurence dělá a my ne (' + gaps.length + ')', '5');
+
+    if (gaps.length === 0) {
+      return body + emptyBlock('Žádné mezery nejsou identifikované.');
+    }
+
+    gaps.forEach((g, i) => {
+      const sevColor = g.severity === 'critical' ? '#dc2626' :
+                       g.severity === 'high' ? '#d97706' :
+                       g.severity === 'medium' ? '#ca8a04' : '#6b7280';
+      body += '<div style="margin-bottom:14px;page-break-inside:avoid;border-left:3px solid ' + sevColor + ';padding:10px 14px;background:#fafafa;border-radius:0 6px 6px 0">' +
+        '<div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:6px">' +
+          '<span style="font-size:10px;font-weight:700;color:' + sevColor + ';text-transform:uppercase;letter-spacing:0.06em">' + escHtml(g.severity || '?') + '</span>' +
+          (g.category ? '<span style="font-size:10px;color:#6b7280">' + escHtml(g.category) + '</span>' : '') +
+          (g.affectedLever ? '<span style="font-size:10px;color:#6b7280">· ' + escHtml(g.affectedLever) + '</span>' : '') +
+        '</div>' +
+        '<div style="font-size:13px;font-weight:700;color:#1a1a2e;margin-bottom:4px">' + (i + 1) + '. ' + escHtml(g.title || '—') + '</div>';
+
+      if (g.description) {
+        body += '<p style="font-size:11px;color:#4b5563;line-height:1.6;margin:4px 0">' + escHtml(g.description) + '</p>';
+      }
+      if (g.response) {
+        body += '<p style="font-size:11px;color:#1f2937;line-height:1.6;margin:6px 0 0;padding:8px 10px;background:#fff;border-radius:4px"><strong>Doporučení:</strong> ' + escHtml(g.response) + '</p>';
+      }
+      // Scoring
+      if (g.impact != null || g.ease != null || g.speed != null) {
+        body += '<div style="font-size:10px;color:#6b7280;margin-top:6px">' +
+          (g.impact != null ? 'Dopad: ' + g.impact + '/10 · ' : '') +
+          (g.ease != null ? 'Snadnost: ' + g.ease + '/10 · ' : '') +
+          (g.speed != null ? 'Rychlost: ' + g.speed + '/10' : '') +
+        '</div>';
+      }
+      body += '</div>';
+    });
+
+    return body;
+  }
+
+  /* ─── 6. Pozicioning ───────────────────────────────────────────────── */
+
+  function buildPositioning(state) {
+    const pos = state.positioning || {};
+    let body = sectionH1('Pozicioning (NeedScope)', '6');
+
+    if (!pos.primary && !pos.frameworkText) {
+      return body + emptyBlock('Pozicioning není nastavený.');
+    }
+
+    body += '<table style="width:100%;border-collapse:collapse;font-size:12px;color:#1f2937">';
+    if (pos.primary) body += '<tr style="border-bottom:1px solid #f3f4f6"><td style="padding:8px 10px;color:#6b7280;font-weight:600;width:200px">Primární segment</td><td style="padding:8px 10px;font-weight:600">' + escHtml(pos.primary) + '</td></tr>';
+    if (pos.secondary) body += '<tr style="border-bottom:1px solid #f3f4f6"><td style="padding:8px 10px;color:#6b7280;font-weight:600">Sekundární segment</td><td style="padding:8px 10px">' + escHtml(pos.secondary) + '</td></tr>';
+    if (pos.distinctiveness != null) body += '<tr style="border-bottom:1px solid #f3f4f6"><td style="padding:8px 10px;color:#6b7280;font-weight:600">Distinctiveness</td><td style="padding:8px 10px">' + pos.distinctiveness + '/10</td></tr>';
+    body += '</table>';
+
+    if (pos.frameworkText) {
+      body += '<div style="margin-top:14px;padding:14px 16px;background:#fafafa;border-radius:6px;font-size:12px;color:#1f2937;line-height:1.7;white-space:pre-wrap">' + escHtml(pos.frameworkText) + '</div>';
+    }
+
+    return body;
+  }
+
+  /* ─── 7. Média ─────────────────────────────────────────────────────── */
+
+  function buildMedia(state) {
+    const recs = state.mediaRecs || [];
+    let body = sectionH1('Mediální mix (' + recs.length + ' kanálů)', '7');
+
+    if (recs.length === 0) {
+      return body + emptyBlock('Mediální doporučení nejsou vygenerovaná.');
+    }
+
+    const sorted = [...recs].sort((a, b) => (b.affinity || b.score || 0) - (a.affinity || a.score || 0));
+    const top = sorted.slice(0, 30);
+
+    body += '<table style="width:100%;border-collapse:collapse;font-size:11px;color:#1f2937">' +
+      '<thead><tr style="background:#fafafa;border-bottom:2px solid #e5e7eb">' +
+        '<th style="text-align:left;padding:7px 8px;color:#6b7280;font-weight:600;width:30px">#</th>' +
+        '<th style="text-align:left;padding:7px 8px;color:#6b7280;font-weight:600">Kanál</th>' +
+        '<th style="text-align:center;padding:7px 8px;color:#6b7280;font-weight:600;width:75px">Affinity</th>' +
+        '<th style="text-align:center;padding:7px 8px;color:#6b7280;font-weight:600;width:85px">Reach</th>' +
+        '<th style="text-align:center;padding:7px 8px;color:#6b7280;font-weight:600;width:75px">CPM</th>' +
+        '<th style="text-align:left;padding:7px 8px;color:#6b7280;font-weight:600">Kategorie</th>' +
+      '</tr></thead><tbody>';
+
+    top.forEach((m, i) => {
+      const aff = m.affinity || m.score || 0;
+      const reach = m.reach || m.monthlyReach || '—';
+      body += '<tr style="border-bottom:1px solid #f3f4f6;page-break-inside:avoid">' +
+        '<td style="padding:6px 8px;color:#9ca3af">' + (i + 1) + '</td>' +
+        '<td style="padding:6px 8px;font-weight:600">' + escHtml(m.channel || m.name || '?') +
+          (m.audience || m.targetAudience ? '<div style="font-size:10px;color:#6b7280;margin-top:1px">' + escHtml(m.audience || m.targetAudience) + '</div>' : '') +
+        '</td>' +
+        '<td style="text-align:center;padding:6px 8px;font-weight:700">' + aff + '</td>' +
+        '<td style="text-align:center;padding:6px 8px">' + (typeof reach === 'number' ? (reach >= 1e6 ? (reach/1e6).toFixed(1) + 'M' : reach >= 1e3 ? Math.round(reach/1e3) + 'K' : reach) : escHtml(reach)) + '</td>' +
+        '<td style="text-align:center;padding:6px 8px">' + (m.cpm ? m.cpm + ' Kč' : '—') + '</td>' +
+        '<td style="padding:6px 8px;color:#4b5563">' + escHtml(m.category || m.type || '—') + '</td>' +
+      '</tr>';
+    });
+
+    body += '</tbody></table>';
+    if (recs.length > 30) {
+      body += '<p style="font-size:10px;color:#9ca3af;margin-top:8px;font-style:italic">Zobrazeno top 30 z ' + recs.length + ' kanálů.</p>';
+    }
+
+    return body;
+  }
+
+  /* ─── 8. Strategický plán ──────────────────────────────────────────── */
+
+  function buildStrategy(state) {
+    const s = state.strategy || {};
+    let body = sectionH1('Strategický plán', '8');
+
+    let hasAnything = false;
+
+    if (s.thesis) {
+      hasAnything = true;
+      body += '<h3 style="margin:18px 0 6px;font-size:14px;font-weight:700;color:#1a1a2e">Strategická teze</h3>' +
+        '<p style="font-size:13px;color:#1f2937;line-height:1.7;font-style:italic;padding:12px 16px;background:#fafafa;border-left:3px solid #4f46e5;border-radius:0 6px 6px 0;margin:6px 0">' + escHtml(s.thesis) + '</p>';
+    }
+
+    if (s.whereWeWin || s.whereVulnerable) {
+      hasAnything = true;
+      body += '<table style="width:100%;border-collapse:collapse;font-size:12px;color:#1f2937;margin:10px 0">';
+      if (s.whereWeWin) body += '<tr><td style="padding:8px 10px;color:#6b7280;font-weight:600;width:180px;vertical-align:top">Kde vyhráváme</td><td style="padding:8px 10px;line-height:1.6">' + escHtml(s.whereWeWin) + '</td></tr>';
+      if (s.whereVulnerable) body += '<tr><td style="padding:8px 10px;color:#6b7280;font-weight:600;vertical-align:top">Zranitelnost</td><td style="padding:8px 10px;line-height:1.6">' + escHtml(s.whereVulnerable) + '</td></tr>';
+      body += '</table>';
+    }
+
+    // Decision Layer (A4-A11)
+    const dlFields = [
+      ['executiveDecisionPage', 'Executive Decision Page'],
+      ['oneSentenceStrategy', 'One-Sentence Strategy'],
+      ['strategicDiagnosis', 'Strategická diagnóza'],
+      ['growthThesis', 'Růstová teze'],
+      ['marketTruth', 'Pravda o trhu'],
+      ['strategicChoiceArchitecture', 'Strategic Choice Architecture'],
+      ['mustWinBattles', 'Must-Win Battles'],
+      ['managementAsk', 'Management Ask']
+    ];
+    dlFields.forEach(([k, label]) => {
+      if (s[k]) {
+        hasAnything = true;
+        const v = typeof s[k] === 'string' ? s[k] : JSON.stringify(s[k], null, 2);
+        body += '<h3 style="margin:18px 0 6px;font-size:14px;font-weight:700;color:#1a1a2e">' + escHtml(label) + '</h3>' +
+          '<div style="font-size:12px;color:#1f2937;line-height:1.7;white-space:pre-wrap;padding:10px 12px;background:#fafafa;border-radius:6px">' + escHtml(v) + '</div>';
+      }
+    });
+
+    // Bold Move
+    if (s.boldMove) {
+      hasAnything = true;
+      const bm = s.boldMove;
+      body += '<h3 style="margin:18px 0 6px;font-size:14px;font-weight:700;color:#1a1a2e">Bold Move</h3>' +
+        '<div style="padding:12px 14px;background:#fafafa;border-radius:6px;font-size:12px;color:#1f2937;line-height:1.6">';
+      if (bm.title) body += '<div style="font-weight:700;margin-bottom:6px">' + escHtml(bm.title) + '</div>';
+      if (bm.description) body += '<div style="margin-bottom:6px">' + escHtml(bm.description) + '</div>';
+      if (bm.whyNow) body += '<div style="margin-top:6px"><strong>Proč teď:</strong> ' + escHtml(bm.whyNow) + '</div>';
+      if (bm.estimatedImpact) body += '<div><strong>Očekávaný dopad:</strong> ' + escHtml(bm.estimatedImpact) + '</div>';
+      if (bm.risk) body += '<div><strong>Riziko:</strong> ' + escHtml(bm.risk) + '</div>';
+      body += '</div>';
+    }
+
+    // Roadmap
+    if (s.roadmap) {
+      hasAnything = true;
+      body += '<h3 style="margin:18px 0 6px;font-size:14px;font-weight:700;color:#1a1a2e">Roadmap</h3>';
+      ['phase1', 'phase2', 'phase3'].forEach((k, i) => {
+        const p = s.roadmap[k];
+        if (!p) return;
+        body += '<div style="padding:10px 14px;background:#fafafa;border-radius:6px;margin-bottom:8px;page-break-inside:avoid">' +
+          '<div style="font-size:12px;font-weight:700;color:#1a1a2e">Fáze ' + (i + 1) + ': ' + escHtml(p.name || '—') + '</div>' +
+          (p.goal ? '<div style="font-size:11px;color:#4b5563;margin-top:3px"><strong>Cíl:</strong> ' + escHtml(p.goal) + '</div>' : '') +
+          (p.kpi ? '<div style="font-size:11px;color:#4b5563"><strong>KPI:</strong> ' + escHtml(p.kpi) + '</div>' : '');
+        if (Array.isArray(p.actions) && p.actions.length) {
+          body += '<ul style="margin:6px 0 0 18px;font-size:11px;color:#4b5563;line-height:1.6">' +
+            p.actions.map(a => '<li>' + escHtml(a) + '</li>').join('') + '</ul>';
+        }
+        body += '</div>';
+      });
+    }
+
+    // KPI Tree
+    if (s.kpiTree) {
+      hasAnything = true;
+      body += '<h3 style="margin:18px 0 6px;font-size:14px;font-weight:700;color:#1a1a2e">KPI Tree</h3>' +
+        '<div style="font-size:11px;color:#1f2937;line-height:1.6;white-space:pre-wrap;padding:10px 12px;background:#fafafa;border-radius:6px">' +
+        escHtml(typeof s.kpiTree === 'string' ? s.kpiTree : JSON.stringify(s.kpiTree, null, 2)) +
+        '</div>';
+    }
+
+    // Risks
+    if (s.risks) {
+      hasAnything = true;
+      body += '<h3 style="margin:18px 0 6px;font-size:14px;font-weight:700;color:#1a1a2e">Rizika a guardrails</h3>' +
+        '<div style="font-size:11px;color:#1f2937;line-height:1.6;white-space:pre-wrap;padding:10px 12px;background:#fafafa;border-radius:6px">' +
+        escHtml(typeof s.risks === 'string' ? s.risks : JSON.stringify(s.risks, null, 2)) +
+        '</div>';
+    }
+
+    if (!hasAnything) {
+      body += emptyBlock('Strategie není vygenerovaná.');
+    }
+
+    return body;
+  }
+
+  /* ─── 9. Konzultantské sekce (B22-B28) ─────────────────────────────── */
+
+  function buildConsultantSections(state) {
+    const cs = (state.strategy && state.strategy.consultantSections) || {};
+    const keys = [
+      ['contentPlatform', 'Content & Communication Platform (B22)'],
+      ['publishingCadence', 'Publishing Cadence (B23)'],
+      ['creativeDirection', 'Creative Direction (B24)'],
+      ['landingPages', 'Landing Page Architecture (B25)'],
+      ['seoStrategy', 'SEO Strategy (B26)'],
+      ['crmRetention', 'CRM & Retention (B27)'],
+      ['prStrategy', 'PR & Thought Leadership (B28)']
+    ];
+    const present = keys.filter(([k]) => cs[k] && cs[k].markdown);
+
+    let body = sectionH1('Konzultantské sekce (' + present.length + ' / ' + keys.length + ')', '9');
+
+    if (present.length === 0) {
+      return body + emptyBlock('Konzultantské AI sekce nejsou vygenerované.');
+    }
+
+    present.forEach(([k, label]) => {
+      const c = cs[k];
+      body += '<h3 style="margin:18px 0 6px;font-size:14px;font-weight:700;color:#1a1a2e;page-break-after:avoid">' + escHtml(label) + '</h3>' +
+        '<div style="font-size:12px;color:#1f2937;line-height:1.7;padding:10px 14px;background:#fafafa;border-radius:6px;margin-bottom:10px">' +
+          md2html(c.markdown) +
+        '</div>';
+    });
+
+    return body;
+  }
+
+  /* ─── 10. Konzultantský pack (P1-P8) ───────────────────────────────── */
+
+  function buildConsultantPack(state) {
+    const cp = (state.strategy && state.strategy.consultantPack) || null;
+    let body = sectionH1('Konzultantský pack (interní)', '10');
+
+    if (!cp) {
+      return body + emptyBlock('Konzultantský pack není vygenerovaný.');
+    }
+
+    const fields = [
+      ['talkTrack3min', 'Talk Track (3 min)'],
+      ['objectionResponses', 'Námitky a odpovědi'],
+      ['workshopAgenda', 'Workshop agenda'],
+      ['onePagerExecutive', 'Executive One-Pager'],
+      ['kickoffEmail', 'Kickoff email klientovi'],
+      ['stakeholderMap', 'Mapa stakeholderů'],
+      ['riskRegister', 'Risk register'],
+      ['acceptanceCriteria', 'Acceptance criteria']
+    ];
+
+    let any = false;
+    fields.forEach(([k, label]) => {
+      if (cp[k]) {
+        any = true;
+        const v = typeof cp[k] === 'string' ? cp[k] : JSON.stringify(cp[k], null, 2);
+        body += '<h3 style="margin:18px 0 6px;font-size:14px;font-weight:700;color:#1a1a2e">' + escHtml(label) + '</h3>' +
+          '<div style="font-size:11px;color:#1f2937;line-height:1.7;white-space:pre-wrap;padding:10px 12px;background:#fafafa;border-radius:6px">' +
+          escHtml(v) + '</div>';
+      }
+    });
+
+    if (!any) {
+      body += emptyBlock('Pack je definovaný, ale žádné sekce nejsou vyplněné.');
+    }
+
+    return body;
+  }
+
+  /* ─── 11. Methodology + Sources ────────────────────────────────────── */
+
+  function buildMethodology(state) {
+    const b = state.brief || {};
+    let body = sectionH1('Metodologie a zdroje', '11');
+
+    body += '<h3 style="margin:14px 0 6px;font-size:14px;font-weight:700;color:#1a1a2e">KOMPAS Framework</h3>' +
+      '<p style="font-size:12px;color:#1f2937;line-height:1.7;margin:6px 0">' +
+        'Tato analýza používá <strong>Map → Gap → Mix</strong> framework:' +
+      '</p>' +
+      '<ul style="margin:6px 0 14px 18px;font-size:12px;color:#4b5563;line-height:1.7">' +
+        '<li><strong>Map</strong> — mapování trhu: konkurence (C4 scoring), poptávkové segmenty, důkazy z trhu</li>' +
+        '<li><strong>Gap</strong> — gap analýza: kde konkurence dělá a my ne, kde jsou strategické příležitosti</li>' +
+        '<li><strong>Mix</strong> — strategický mix: positioning, kanálová strategie, roadmapa, KPI</li>' +
+      '</ul>' +
+
+      '<h3 style="margin:14px 0 6px;font-size:14px;font-weight:700;color:#1a1a2e">C4 scoring</h3>' +
+      '<p style="font-size:12px;color:#1f2937;line-height:1.7;margin:6px 0">' +
+        'Konkurenti se hodnotí podle 4 dimenzí (každá 0-10):' +
+      '</p>' +
+      '<ul style="margin:6px 0 14px 18px;font-size:12px;color:#4b5563;line-height:1.7">' +
+        '<li><strong>Need-fit</strong> — jak dobře produkt řeší potřebu cílovky</li>' +
+        '<li><strong>Reach</strong> — distribuční schopnost, awareness</li>' +
+        '<li><strong>Trust</strong> — důvěryhodnost značky</li>' +
+        '<li><strong>Friction</strong> — překážky při nákupu/use (vyšší = víc friction)</li>' +
+      '</ul>' +
+
+      '<h3 style="margin:14px 0 6px;font-size:14px;font-weight:700;color:#1a1a2e">Datové zdroje</h3>' +
+      '<ul style="margin:6px 0 14px 18px;font-size:11px;color:#4b5563;line-height:1.7">' +
+        '<li>SimilarWeb / NetMonitor — návštěvnost konkurenčních webů</li>' +
+        '<li>Google Trends — vývoj zájmu o značky</li>' +
+        '<li>Meta Ad Library, Google Ads Transparency — aktivní reklamy konkurence</li>' +
+        '<li>Veřejné firemní zdroje — výroční zprávy, registr</li>' +
+        '<li>NeedScope (Kantar) — segmentační framework pozicionování</li>' +
+        '<li>KOMPAS Media Engine — 105 českých mediálních kanálů s affinity scoring</li>' +
+        '<li>AI hloubkový průzkum (Anthropic Claude) — syntetický průzkum web zdrojů per konkurent</li>' +
+      '</ul>' +
+
+      '<h3 style="margin:14px 0 6px;font-size:14px;font-weight:700;color:#1a1a2e">Klasifikace důkazů</h3>' +
+      '<ul style="margin:6px 0 14px 18px;font-size:11px;color:#4b5563;line-height:1.7">' +
+        '<li><strong>validated_fact</strong> — ověřené tvrzení s primárním zdrojem</li>' +
+        '<li><strong>ai_hypothesis</strong> — AI-vygenerovaná hypotéza, vyžaduje ověření</li>' +
+        '<li><strong>user_input</strong> — ručně přidaný uživatelem</li>' +
+        '<li><strong>inferred</strong> — odvozeno z více zdrojů</li>' +
+      '</ul>' +
+
+      '<p style="font-size:10px;color:#9ca3af;line-height:1.6;margin-top:20px;padding-top:12px;border-top:1px solid #e5e7eb">' +
+        'Vygenerováno aplikací KOMPAS™ v7.0.0 · ' + new Date().toLocaleString('cs-CZ') + '<br>' +
+        'Tento report je čistý datový export. Pro consulting deliverable použijte Senior PDF variantu.' +
+      '</p>';
+
+    return body;
+  }
+
+  /* ─── Main build function ──────────────────────────────────────────── */
+
+  function build(state, options) {
+    state = state || getState();
+    options = options || {};
+
+    const b = state.brief || {};
+    const docTitle = (b.clientName || 'KOMPAS') + ' — Čistý export';
+
+    const head = (
+      '<!DOCTYPE html><html lang="cs"><head>' +
+        '<meta charset="UTF-8">' +
+        '<title>' + escHtml(docTitle) + '</title>' +
+        '<style>' +
+          '@page { size: A4; margin: 18mm 16mm; }' +
+          'body { font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 12px; color: #1f2937; margin: 0; padding: 0; line-height: 1.6; }' +
+          'h1, h2, h3 { color: #1a1a2e; }' +
+          'table { border-collapse: collapse; }' +
+          'a { color: #4f46e5; text-decoration: none; }' +
+          '@media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } details { page-break-inside: avoid; } details > summary { display: none; } details > div { display: block !important; } }' +
+        '</style>' +
+      '</head><body>'
+    );
+
+    let body = '';
+    body += buildCover(state);
+    body += buildBrief(state);
+    body += buildCompetitors(state);
+    body += buildCustomers(state);
+    body += buildEvidence(state);
+    body += buildGaps(state);
+    body += buildPositioning(state);
+    body += buildMedia(state);
+    body += buildStrategy(state);
+    body += buildConsultantSections(state);
+    body += buildConsultantPack(state);
+    body += buildMethodology(state);
+
+    return head + body + '</body></html>';
+  }
+
+  /* ─── Open in new window ───────────────────────────────────────────── */
+
+  function open(stateArg, options) {
+    const state = stateArg || getState();
+    const html = build(state, options);
+    const win = window.open('', '_blank');
+    if (!win) {
+      alert('Prohlížeč zablokoval otevření okna. Povolte pop-up a zkuste znovu.');
+      return null;
+    }
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+    // Auto print dialog after load
+    setTimeout(() => {
+      try { win.focus(); } catch (e) {}
+    }, 300);
+    return win;
+  }
+
+  /* ─── Public API ───────────────────────────────────────────────────── */
+
+  window.KR = window.KR || {};
+  window.KR.pdfClean = {
+    build: build,
+    open: open,
+    _builders: {
+      cover: buildCover,
+      brief: buildBrief,
+      competitors: buildCompetitors,
+      customers: buildCustomers,
+      evidence: buildEvidence,
+      gaps: buildGaps,
+      positioning: buildPositioning,
+      media: buildMedia,
+      strategy: buildStrategy,
+      consultantSections: buildConsultantSections,
+      consultantPack: buildConsultantPack,
+      methodology: buildMethodology
+    }
+  };
+
+  console.info('[KOMPAS] Phase 20: Čistý PDF builder loaded (alpha.39).');
+})();
+/* ========================================================================
+   Phase 21: Export Tab Redesign (alpha.39)
+
+   GOAL
+   ----
+   Replace vendor's "Governance & Export" + sticky "Export blokován" banner +
+   3 cards (PDF Report / Workspace JSON / Markdown Report) + 4 modular .md
+   cards + "Přehled dat" box with a single unified export panel:
+
+   - PRIMARY row: [📄 Čistý PDF (vše)] [✦ Senior PDF (consulting)]
+   - SECONDARY row: [📝 Markdown (.md)] [💾 Workspace JSON]
+
+   This panel renders ABOVE the existing Report Readiness panel (alpha.34)
+   so user sees QA status first, then export options together.
+
+   IMPLEMENTATION
+   --------------
+   - MutationObserver watches Export tab activation
+   - On Export tab visible:
+     a) Find vendor's Governance container (h2 "Governance & Export") and hide
+     b) Find sticky "Export blokován" banner and hide
+     c) Inject our panel before the Report Readiness <div id="kr-report-readiness">
+
+   - Buttons wire to:
+     - Čistý PDF → window.KR.pdfClean.open() (phase 20)
+     - Senior PDF → window.KR.pdfMaster.open() (existing master flow w/ QA gate)
+     - Markdown → buildMarkdown(state) → download .md
+     - JSON → JSON.stringify(state) → download .json
+   ======================================================================== */
+
+(function () {
+  'use strict';
+
+  if (window.KR && window.KR.exportRedesign) {
+    console.warn('[KOMPAS] exportRedesign already loaded; skipping.');
+    return;
+  }
+
+  /* ─── Helpers ──────────────────────────────────────────────────────── */
+
+  function escHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function getState() {
+    if (window.KR.appState && typeof window.KR.appState.getKompas === 'function') {
+      return window.KR.appState.getKompas() || {};
+    }
+    try { return JSON.parse(localStorage.getItem('kompas_v5') || '{}'); } catch (e) { return {}; }
+  }
+
+  function isOnExportTab() {
+    // Heuristic: Export tab is active if Report Readiness panel exists in DOM
+    return !!document.getElementById('kr-report-readiness');
+  }
+
+  function downloadBlob(content, mime, filename) {
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function clientSlug(state) {
+    const name = state && state.brief && state.brief.clientName
+      ? state.brief.clientName : 'KOMPAS';
+    return String(name).toLowerCase()
+      .replace(/[áàä]/g, 'a').replace(/[éěè]/g, 'e').replace(/[íì]/g, 'i')
+      .replace(/[óòö]/g, 'o').replace(/[úůù]/g, 'u').replace(/[ý]/g, 'y')
+      .replace(/[čć]/g, 'c').replace(/[ďđ]/g, 'd').replace(/[ň]/g, 'n')
+      .replace(/[řŕ]/g, 'r').replace(/[šś]/g, 's').replace(/[ť]/g, 't').replace(/[ž]/g, 'z')
+      .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'kompas';
+  }
+
+  function isoDate() {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  /* ─── Markdown export ──────────────────────────────────────────────── */
+
+  function buildMarkdown(state) {
+    const b = state.brief || {};
+    const lines = [];
+
+    lines.push('# ' + (b.clientName || 'KOMPAS') + ' — Strategický report');
+    lines.push('');
+    lines.push('Vygenerováno: ' + new Date().toLocaleString('cs-CZ'));
+    lines.push('Segment: ' + (b.segment || '—') + ' · Produkt: ' + (b.product || '—'));
+    lines.push('');
+    lines.push('---');
+    lines.push('');
+
+    // Brief
+    lines.push('## 1. Brief');
+    lines.push('');
+    if (b.product) lines.push('**Produkt:** ' + b.product);
+    if (b.audience) lines.push('**Cílová skupina:** ' + b.audience);
+    if (b.goals) lines.push('**Cíle:** ' + b.goals);
+    if (b.budget) lines.push('**Rozpočet:** ' + b.budget);
+    if (b.currentMarketing) lines.push('**Současný marketing:** ' + b.currentMarketing);
+    if (b.strengths) lines.push('**Silné stránky:** ' + b.strengths);
+    if (b.weaknesses) lines.push('**Slabé stránky:** ' + b.weaknesses);
+    lines.push('');
+
+    // Strategická teze (pokud existuje)
+    const s = state.strategy || {};
+    if (s.thesis) {
+      lines.push('## 2. Strategická teze');
+      lines.push('');
+      lines.push('> ' + s.thesis);
+      lines.push('');
+      if (s.whereWeWin) lines.push('**Kde vyhráváme:** ' + s.whereWeWin);
+      if (s.whereVulnerable) lines.push('**Zranitelnost:** ' + s.whereVulnerable);
+      lines.push('');
+    }
+
+    // Konkurenti
+    const comps = state.competitors || [];
+    if (comps.length) {
+      lines.push('## 3. Konkurenti (' + comps.length + ')');
+      lines.push('');
+      comps.forEach((c, i) => {
+        lines.push('### ' + (i + 1) + '. ' + (c.name || '—'));
+        lines.push('');
+        if (c.type) lines.push('- **Typ:** ' + c.type);
+        if (c.positioning) lines.push('- **Pozicionování:** ' + c.positioning);
+        if (c.scores) {
+          lines.push('- **C4 skóre:** Need-fit ' + (c.scores.needFit || 0) +
+                     ' · Reach ' + (c.scores.reach || 0) +
+                     ' · Trust ' + (c.scores.trust || 0) +
+                     ' · Friction ' + (c.scores.friction || 0));
+        }
+        if (c.rawResearch) {
+          lines.push('');
+          lines.push('**Deep research:**');
+          lines.push('');
+          lines.push(c.rawResearch.slice(0, 1500) + (c.rawResearch.length > 1500 ? '…' : ''));
+        }
+        lines.push('');
+      });
+    }
+
+    // Zákazníci
+    const pools = state.demandPools || [];
+    if (pools.length) {
+      lines.push('## 4. Zákazníci — poptávkové segmenty (' + pools.length + ')');
+      lines.push('');
+      pools.forEach((p, i) => {
+        lines.push('### ' + (i + 1) + '. ' + (p.name || '—'));
+        if (p.situation) lines.push('- **Situace:** ' + p.situation);
+        if (p.urgency) lines.push('- **Naléhavost:** ' + p.urgency);
+        if (p.alternatives) lines.push('- **Alternativy:** ' + p.alternatives);
+        if (p.value) lines.push('- **Hodnota:** ' + p.value);
+        lines.push('');
+      });
+    }
+
+    // Důkazy
+    const ev = state.evidence || [];
+    if (ev.length) {
+      lines.push('## 5. Důkazy z trhu (' + ev.length + ')');
+      lines.push('');
+      ev.forEach((e, i) => {
+        lines.push((i + 1) + '. **' + (e.claim || '—') + '**');
+        if (e.source) lines.push('   - Zdroj: ' + e.source);
+        if (e.classification) lines.push('   - Klasifikace: ' + e.classification);
+        if (e.lever) lines.push('   - Páka: ' + e.lever);
+        if (e.implication) lines.push('   - Dopad: ' + e.implication);
+      });
+      lines.push('');
+    }
+
+    // Mezery
+    const gaps = state.gaps || [];
+    if (gaps.length) {
+      lines.push('## 6. Mezery / co konkurence dělá a my ne (' + gaps.length + ')');
+      lines.push('');
+      gaps.forEach((g, i) => {
+        lines.push('### ' + (i + 1) + '. ' + (g.title || '—'));
+        if (g.severity) lines.push('- **Závažnost:** ' + g.severity);
+        if (g.category) lines.push('- **Kategorie:** ' + g.category);
+        if (g.affectedLever) lines.push('- **Páka:** ' + g.affectedLever);
+        if (g.description) {
+          lines.push('');
+          lines.push(g.description);
+        }
+        if (g.response) {
+          lines.push('');
+          lines.push('**Doporučení:** ' + g.response);
+        }
+        lines.push('');
+      });
+    }
+
+    // Pozicioning
+    const pos = state.positioning || {};
+    if (pos.primary) {
+      lines.push('## 7. Pozicioning (NeedScope)');
+      lines.push('');
+      lines.push('**Primární segment:** ' + pos.primary);
+      if (pos.secondary) lines.push('**Sekundární segment:** ' + pos.secondary);
+      if (pos.distinctiveness != null) lines.push('**Distinctiveness:** ' + pos.distinctiveness + '/10');
+      if (pos.frameworkText) {
+        lines.push('');
+        lines.push(pos.frameworkText);
+      }
+      lines.push('');
+    }
+
+    // Média
+    const media = state.mediaRecs || [];
+    if (media.length) {
+      lines.push('## 8. Mediální mix (' + media.length + ' kanálů)');
+      lines.push('');
+      lines.push('| # | Kanál | Affinity | Reach | Kategorie |');
+      lines.push('|---|---|---|---|---|');
+      media.slice(0, 30).forEach((m, i) => {
+        const aff = m.affinity || m.score || 0;
+        const reach = m.reach || m.monthlyReach || '—';
+        lines.push('| ' + (i + 1) + ' | ' + (m.channel || m.name || '—') + ' | ' +
+                   aff + ' | ' + reach + ' | ' + (m.category || m.type || '—') + ' |');
+      });
+      lines.push('');
+    }
+
+    // Strategy: Decision Layer
+    if (s.executiveDecisionPage || s.oneSentenceStrategy || s.mustWinBattles) {
+      lines.push('## 9. Decision Layer (Executive)');
+      lines.push('');
+      if (s.executiveDecisionPage) {
+        lines.push('### Executive Decision Page');
+        lines.push('');
+        lines.push(s.executiveDecisionPage);
+        lines.push('');
+      }
+      if (s.oneSentenceStrategy) {
+        lines.push('### One-Sentence Strategy');
+        lines.push('');
+        lines.push('> ' + s.oneSentenceStrategy);
+        lines.push('');
+      }
+      if (s.strategicDiagnosis) {
+        lines.push('### Strategická diagnóza');
+        lines.push('');
+        lines.push(s.strategicDiagnosis);
+        lines.push('');
+      }
+      if (s.growthThesis) {
+        lines.push('### Růstová teze');
+        lines.push('');
+        lines.push(s.growthThesis);
+        lines.push('');
+      }
+      if (s.marketTruth) {
+        lines.push('### Pravda o trhu');
+        lines.push('');
+        lines.push(s.marketTruth);
+        lines.push('');
+      }
+      if (s.strategicChoiceArchitecture) {
+        lines.push('### Strategic Choice Architecture');
+        lines.push('');
+        lines.push(typeof s.strategicChoiceArchitecture === 'string' ? s.strategicChoiceArchitecture : JSON.stringify(s.strategicChoiceArchitecture, null, 2));
+        lines.push('');
+      }
+      if (s.mustWinBattles) {
+        lines.push('### Must-Win Battles');
+        lines.push('');
+        lines.push(typeof s.mustWinBattles === 'string' ? s.mustWinBattles : JSON.stringify(s.mustWinBattles, null, 2));
+        lines.push('');
+      }
+      if (s.managementAsk) {
+        lines.push('### Management Ask');
+        lines.push('');
+        lines.push(s.managementAsk);
+        lines.push('');
+      }
+    }
+
+    // Strategy: Bold Move
+    if (s.boldMove) {
+      lines.push('## 10. Bold Move');
+      lines.push('');
+      const bm = s.boldMove;
+      if (bm.title) lines.push('**' + bm.title + '**');
+      if (bm.description) lines.push(bm.description);
+      if (bm.whyNow) lines.push('');
+      if (bm.whyNow) lines.push('**Proč teď:** ' + bm.whyNow);
+      if (bm.estimatedImpact) lines.push('**Očekávaný dopad:** ' + bm.estimatedImpact);
+      if (bm.risk) lines.push('**Riziko:** ' + bm.risk);
+      lines.push('');
+    }
+
+    // Strategy: Roadmap
+    if (s.roadmap) {
+      lines.push('## 11. Roadmap');
+      lines.push('');
+      ['phase1', 'phase2', 'phase3'].forEach((k, i) => {
+        const p = s.roadmap[k];
+        if (!p) return;
+        lines.push('### Fáze ' + (i + 1) + ': ' + (p.name || '—'));
+        if (p.goal) lines.push('- **Cíl:** ' + p.goal);
+        if (p.kpi) lines.push('- **KPI:** ' + p.kpi);
+        if (Array.isArray(p.actions)) {
+          lines.push('- **Akce:**');
+          p.actions.forEach(a => lines.push('  - ' + a));
+        }
+        lines.push('');
+      });
+    }
+
+    // Strategy: KPI Tree
+    if (s.kpiTree) {
+      lines.push('## 12. KPI Tree');
+      lines.push('');
+      lines.push(typeof s.kpiTree === 'string' ? s.kpiTree : JSON.stringify(s.kpiTree, null, 2));
+      lines.push('');
+    }
+
+    // Konzultantské sekce (B22-B28)
+    const cs = (s.consultantSections) || {};
+    const csKeys = [
+      ['contentPlatform', 'Content & Communication Platform (B22)'],
+      ['publishingCadence', 'Publishing Cadence (B23)'],
+      ['creativeDirection', 'Creative Direction (B24)'],
+      ['landingPages', 'Landing Page Architecture (B25)'],
+      ['seoStrategy', 'SEO Strategy (B26)'],
+      ['crmRetention', 'CRM & Retention (B27)'],
+      ['prStrategy', 'PR & Thought Leadership (B28)']
+    ];
+    const csPresent = csKeys.filter(([k]) => cs[k] && cs[k].markdown);
+    if (csPresent.length) {
+      lines.push('## 13. Konzultantské sekce');
+      lines.push('');
+      csPresent.forEach(([k, title]) => {
+        lines.push('### ' + title);
+        lines.push('');
+        lines.push(cs[k].markdown);
+        lines.push('');
+      });
+    }
+
+    // Konzultantský pack (P1-P8)
+    if (s.consultantPack) {
+      lines.push('## 14. Konzultantský pack (interní)');
+      lines.push('');
+      const cp = s.consultantPack;
+      const cpFields = [
+        ['talkTrack3min', 'Talk Track (3 min)'],
+        ['objectionResponses', 'Námitky a odpovědi'],
+        ['workshopAgenda', 'Workshop agenda'],
+        ['onePagerExecutive', 'Executive One-Pager'],
+        ['kickoffEmail', 'Kickoff email klientovi'],
+        ['stakeholderMap', 'Mapa stakeholderů'],
+        ['riskRegister', 'Risk register'],
+        ['acceptanceCriteria', 'Acceptance criteria']
+      ];
+      cpFields.forEach(([k, title]) => {
+        if (cp[k]) {
+          lines.push('### ' + title);
+          lines.push('');
+          lines.push(typeof cp[k] === 'string' ? cp[k] : JSON.stringify(cp[k], null, 2));
+          lines.push('');
+        }
+      });
+    }
+
+    lines.push('---');
+    lines.push('');
+    lines.push('*Vygenerováno aplikací KOMPAS™ — Map → Gap → Mix framework.*');
+
+    return lines.join('\n');
+  }
+
+  function exportMarkdown() {
+    const state = getState();
+    const md = buildMarkdown(state);
+    const filename = clientSlug(state) + '_kompas_' + isoDate() + '.md';
+    downloadBlob(md, 'text/markdown;charset=utf-8', filename);
+  }
+
+  /* ─── Workspace JSON export ────────────────────────────────────────── */
+
+  function exportJson() {
+    const state = getState();
+    const research = (window.KR.appState && window.KR.appState.getResearch && window.KR.appState.getResearch()) || null;
+    const payload = {
+      version: '7.0.0',
+      exportedAt: new Date().toISOString(),
+      kompas: state,
+      research: research
+    };
+    const json = JSON.stringify(payload, null, 2);
+    const filename = clientSlug(state) + '_kompas_workspace_' + isoDate() + '.json';
+    downloadBlob(json, 'application/json;charset=utf-8', filename);
+  }
+
+  /* ─── PDF triggers ─────────────────────────────────────────────────── */
+
+  function openCleanPdf() {
+    if (window.KR.pdfClean && typeof window.KR.pdfClean.open === 'function') {
+      window.KR.pdfClean.open();
+    } else {
+      alert('Čistý PDF builder zatím nedostupný (window.KR.pdfClean.open chybí). Načítá se po Phase 20.');
+    }
+  }
+
+  function openSeniorPdf() {
+    // Trigger the existing master flow with QA gate (Detail QA modal)
+    // The Report Readiness panel button does the same thing
+    const exportBtn = document.getElementById('kr-rr-export');
+    if (exportBtn && !exportBtn.disabled) {
+      exportBtn.click();
+    } else if (window.KR.pdfMaster && typeof window.KR.pdfMaster.open === 'function') {
+      window.KR.pdfMaster.open();
+    } else {
+      alert('Senior PDF zatím nedostupný.');
+    }
+  }
+
+  /* ─── Hide vendor's "Governance & Export" section ──────────────────── */
+
+  /* Find the section element containing this header.
+   * Walks up the tree while node contains ONLY this header (no other h1/h2/h3).
+   * Returns the highest ancestor that still contains only this header.
+   * This avoids accidentally hiding global wrappers. */
+  function findSectionContaining(header) {
+    let node = header.parentElement;
+    let lastValid = header.parentElement;
+    while (node && node !== document.body) {
+      const headers = node.querySelectorAll('h1, h2, h3');
+      if (headers.length > 1) {
+        // Too far up — return last valid (a section with only this h2 inside)
+        return lastValid;
+      }
+      lastValid = node;
+      node = node.parentElement;
+    }
+    return lastValid;
+  }
+
+  function hideVendorGovernanceSection() {
+    const headers = document.querySelectorAll('h1, h2, h3');
+    for (const h of headers) {
+      if (h.textContent.trim() === 'Governance & Export' && !h.closest('[data-kr-vendor-hidden]')) {
+        const section = findSectionContaining(h);
+        if (section && section !== document.body) {
+          section.style.display = 'none';
+          section.setAttribute('data-kr-vendor-hidden', 'export-section');
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  function hideStrategickyBalikSection() {
+    const headers = document.querySelectorAll('h1, h2, h3');
+    for (const h of headers) {
+      const txt = h.textContent.trim();
+      if ((txt.endsWith('strategický balík') || txt.endsWith('— strategický balík')) &&
+          !h.closest('[data-kr-vendor-hidden]')) {
+        // The header is in a "header block" (eyebrow + h1 + subtitle).
+        // The actual content cards are SIBLINGS of this block at a higher level.
+        // Strategy: find the closest ancestor that has DIV siblings after it,
+        // then hide the ancestor + all next siblings until we hit another h1/h2/h3 section.
+        const headerSection = findSectionContaining(h);
+        if (!headerSection || headerSection === document.body) return false;
+
+        // Hide the header block
+        headerSection.style.display = 'none';
+        headerSection.setAttribute('data-kr-vendor-hidden', 'strategicky-balik-header');
+
+        // Hide subsequent siblings until next section (next sibling with h1/h2/h3 inside)
+        let sib = headerSection.nextElementSibling;
+        while (sib) {
+          if (sib.querySelector('h1, h2, h3')) break;
+          sib.style.display = 'none';
+          sib.setAttribute('data-kr-vendor-hidden', 'strategicky-balik-content');
+          sib = sib.nextElementSibling;
+        }
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function hideStickyExportBlockedBanner() {
+    // Sticky banner shows verdict at top of Export tab — duplicates Report Readiness panel
+    const stickyBtn = document.getElementById('kr-rr-sticky-export');
+    if (stickyBtn) {
+      // Walk up to find sticky container
+      let container = stickyBtn;
+      while (container && container !== document.body) {
+        const cs = container.style.cssText || '';
+        if (cs.includes('sticky') || cs.includes('position: sticky')) {
+          container.style.display = 'none';
+          container.setAttribute('data-kr-vendor-hidden', 'sticky-banner');
+          return true;
+        }
+        container = container.parentElement;
+      }
+    }
+    return false;
+  }
+
+  function hideDuplicateMasterPdfButton() {
+    // Hide the Master PDF button in Report Readiness footer — duplicates Senior PDF in top panel
+    const exportBtn = document.getElementById('kr-rr-export');
+    if (exportBtn && !exportBtn.hasAttribute('data-kr-hidden-duplicate')) {
+      // Walk up to find the action bar (button's parent flex container)
+      const actionBar = exportBtn.parentElement;
+      if (actionBar) {
+        // Hide only the export button + replace footer with hint
+        exportBtn.style.display = 'none';
+        exportBtn.setAttribute('data-kr-hidden-duplicate', 'true');
+        // Detail QA button is sibling — make it full-width
+        const detailBtn = document.getElementById('kr-rr-detail');
+        if (detailBtn) {
+          detailBtn.style.flex = '1';
+          detailBtn.style.padding = '14px 18px';
+          detailBtn.style.fontSize = '14px';
+          detailBtn.style.fontWeight = '700';
+        }
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /* ─── New unified Export panel ─────────────────────────────────────── */
+
+  function buildExportPanel() {
+    const panel = document.createElement('div');
+    panel.id = 'kr-export-unified';
+    panel.style.cssText = 'background:#fff;border:1px solid #e5e7eb;border-radius:14px;padding:24px 28px;margin-bottom:18px;font-family:"DM Sans",system-ui,-apple-system,sans-serif';
+
+    panel.innerHTML =
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px">' +
+        '<div>' +
+          '<div style="font-size:10px;font-weight:700;color:#4f46e5;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:4px">Export deliverable</div>' +
+          '<h2 style="margin:0;font-size:20px;font-weight:700;color:#1a1a2e;letter-spacing:-0.02em">Stáhnout report</h2>' +
+          '<p style="margin:3px 0 0;font-size:12.5px;color:#6b7280;line-height:1.5">Dvě hlavní varianty PDF. Markdown a JSON pro pokročilé formáty.</p>' +
+        '</div>' +
+      '</div>' +
+
+      // PRIMARY ROW: 2 large PDF cards
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">' +
+
+        // Clean PDF
+        '<button id="kr-export-clean" type="button" style="' +
+            'border:1px solid #e5e7eb;background:#fafbfc;border-radius:12px;' +
+            'padding:22px 20px;text-align:left;cursor:pointer;font-family:inherit;' +
+            'transition:all 0.18s;display:flex;flex-direction:column;gap:8px;align-items:flex-start;" ' +
+            'onmouseover="this.style.borderColor=\'#4f46e5\';this.style.background=\'#f5f3ff\'" ' +
+            'onmouseout="this.style.borderColor=\'#e5e7eb\';this.style.background=\'#fafbfc\'">' +
+          '<div style="width:42px;height:42px;border-radius:10px;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:20px">📄</div>' +
+          '<div style="font-size:15px;font-weight:700;color:#1a1a2e">Čistý PDF (vše)</div>' +
+          '<div style="font-size:12px;color:#6b7280;line-height:1.5">Kompletní obsah aplikace v jednom souboru. Minimalistický design pro archiv, audit, handover.</div>' +
+          '<div style="font-size:10px;font-weight:600;color:#4f46e5;letter-spacing:0.06em;text-transform:uppercase;margin-top:auto">Open → Print → Save PDF</div>' +
+        '</button>' +
+
+        // Senior PDF
+        '<button id="kr-export-senior" type="button" style="' +
+            'border:1px solid #ddd6fe;background:linear-gradient(135deg,#f5f3ff,#eef0ff);border-radius:12px;' +
+            'padding:22px 20px;text-align:left;cursor:pointer;font-family:inherit;' +
+            'transition:all 0.18s;display:flex;flex-direction:column;gap:8px;align-items:flex-start;" ' +
+            'onmouseover="this.style.borderColor=\'#7c3aed\';this.style.boxShadow=\'0 4px 16px rgba(124,58,237,0.18)\'" ' +
+            'onmouseout="this.style.borderColor=\'#ddd6fe\';this.style.boxShadow=\'none\'">' +
+          '<div style="width:42px;height:42px;border-radius:10px;background:#7c3aed;display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff">✦</div>' +
+          '<div style="font-size:15px;font-weight:700;color:#1a1a2e">Senior PDF (consulting)</div>' +
+          '<div style="font-size:12px;color:#4338ca;line-height:1.5">Top-agency consulting deliverable. Decision Layer, narrative flow, executive design pro klienta.</div>' +
+          '<div style="font-size:10px;font-weight:600;color:#7c3aed;letter-spacing:0.06em;text-transform:uppercase;margin-top:auto">QA gate → Open → Print PDF</div>' +
+        '</button>' +
+
+      '</div>' +
+
+      // SECONDARY ROW: 2 small buttons
+      '<div style="display:flex;gap:10px;align-items:center;padding-top:14px;border-top:1px solid #f0eeeb">' +
+        '<div style="font-size:10px;font-weight:700;color:#8888a0;letter-spacing:0.08em;text-transform:uppercase;margin-right:6px">Doplňkové formáty:</div>' +
+
+        '<button id="kr-export-md" type="button" style="' +
+            'padding:8px 14px;background:#fff;color:#1f2937;border:1px solid #d1d5db;' +
+            'border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;' +
+            'display:inline-flex;align-items:center;gap:5px;transition:all 0.15s" ' +
+            'onmouseover="this.style.borderColor=\'#059669\';this.style.color=\'#059669\'" ' +
+            'onmouseout="this.style.borderColor=\'#d1d5db\';this.style.color=\'#1f2937\'" ' +
+            'title="Markdown report pro paste do Notion / Google Docs / Slack">' +
+          '<span>📝</span> Markdown (.md)' +
+        '</button>' +
+
+        '<button id="kr-export-json" type="button" style="' +
+            'padding:8px 14px;background:#fff;color:#1f2937;border:1px solid #d1d5db;' +
+            'border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;' +
+            'display:inline-flex;align-items:center;gap:5px;transition:all 0.15s" ' +
+            'onmouseover="this.style.borderColor=\'#0891b2\';this.style.color=\'#0891b2\'" ' +
+            'onmouseout="this.style.borderColor=\'#d1d5db\';this.style.color=\'#1f2937\'" ' +
+            'title="Záloha kompletního stavu pro přenos / backup">' +
+          '<span>💾</span> Workspace (.json)' +
+        '</button>' +
+      '</div>';
+
+    // Wire up buttons after insertion (done by caller)
+    return panel;
+  }
+
+  function wirePanel(panel) {
+    const btnClean = panel.querySelector('#kr-export-clean');
+    const btnSenior = panel.querySelector('#kr-export-senior');
+    const btnMd = panel.querySelector('#kr-export-md');
+    const btnJson = panel.querySelector('#kr-export-json');
+
+    if (btnClean) btnClean.addEventListener('click', () => openCleanPdf());
+    if (btnSenior) btnSenior.addEventListener('click', () => openSeniorPdf());
+    if (btnMd) btnMd.addEventListener('click', () => {
+      try { exportMarkdown(); btnMd.innerHTML = '<span>✓</span> Staženo'; setTimeout(() => btnMd.innerHTML = '<span>📝</span> Markdown (.md)', 1800); }
+      catch (e) { console.error(e); alert('Chyba při exportu .md: ' + e.message); }
+    });
+    if (btnJson) btnJson.addEventListener('click', () => {
+      try { exportJson(); btnJson.innerHTML = '<span>✓</span> Staženo'; setTimeout(() => btnJson.innerHTML = '<span>💾</span> Workspace (.json)', 1800); }
+      catch (e) { console.error(e); alert('Chyba při exportu .json: ' + e.message); }
+    });
+  }
+
+  /* ─── Inject new panel before Report Readiness ─────────────────────── */
+
+  function injectPanel() {
+    if (document.getElementById('kr-export-unified')) return; // already injected
+    const reportReadiness = document.getElementById('kr-report-readiness');
+    if (!reportReadiness) return false;
+
+    const panel = buildExportPanel();
+    reportReadiness.parentNode.insertBefore(panel, reportReadiness);
+    wirePanel(panel);
+    return true;
+  }
+
+  /* ─── Setup observer ───────────────────────────────────────────────── */
+
+  let lastRunAt = 0;
+
+  function tryApply() {
+    if (!isOnExportTab()) return;
+    // Throttle to avoid runaway
+    if (Date.now() - lastRunAt < 200) return;
+    lastRunAt = Date.now();
+
+    hideVendorGovernanceSection();
+    hideStickyExportBlockedBanner();
+    hideStrategickyBalikSection();
+    hideDuplicateMasterPdfButton();
+    injectPanel();
+  }
+
+  function setupObserver() {
+    // Initial attempt
+    tryApply();
+
+    // Watch for navigation between tabs
+    const observer = new MutationObserver(() => {
+      tryApply();
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  // Defer setup until app is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(setupObserver, 1500));
+  } else {
+    setTimeout(setupObserver, 1500);
+  }
+
+  /* ─── Public API ───────────────────────────────────────────────────── */
+
+  window.KR = window.KR || {};
+  window.KR.exportRedesign = {
+    buildMarkdown: buildMarkdown,
+    exportMarkdown: exportMarkdown,
+    exportJson: exportJson,
+    openCleanPdf: openCleanPdf,
+    openSeniorPdf: openSeniorPdf,
+    _injectPanel: injectPanel,
+    _hideVendor: hideVendorGovernanceSection
+  };
+
+  console.info('[KOMPAS] Phase 21: Export Tab Redesign loaded (alpha.39).');
+})();
+/* ========================================================================
+   Phase 22: UX Polish (alpha.40)
+
+   GOAL
+   ----
+   Address remaining UX findings from alpha.38 audit that weren't already
+   resolved by alpha.39's Export tab redesign.
+
+   FINDINGS ADDRESSED
+   ------------------
+   - Nález 6: Terminology — sidebar "Inspirace z trhu" vs H2 "Co konkurence
+     dělá a my ne" in the same tab. Unify by changing H2 to match sidebar
+     + add the descriptive line as subtitle.
+   - Nález 7: AI buttons (AI Discovery, AI extrahovat, AI analyzovat, ...)
+     have no tooltip/hint when API key is missing. Add title attribute +
+     subtle visual badge so user understands why nothing happens.
+
+   FINDINGS NOT ADDRESSED (already resolved or false positive)
+   ----------------------------------------------------------
+   - Nález 2: Sidebar Briefy/Outputy/API integrace — VERIFIED these open
+     modals correctly (Outputy modal, API integrace modal, Briefy modal).
+     Click handlers attach via addEventListener so my initial audit missed
+     them. Modals already have title attributes from research/06-ui-shell.js.
+   - Nález 3 (Quality Gate vs QA): "Quality" text was removed when alpha.39
+     hid vendor's "Governance & Export" section.
+   - Nález 4 (Postup 100% vs Block): "Postup X%" was removed when alpha.39
+     hid the sticky banner + duplicate Master PDF button.
+   - Nález 5 (Disabled tooltips): No buttons are currently disabled — they
+     all run with whatever state is present and just fail silently/runtime
+     on click (handled by Nález 7 fix for AI buttons specifically).
+   - Nález 8 (Enrichment cards): "Obohatit data" cards have a description
+     paragraph that explains their purpose — they're contextual, not orphans.
+
+   IMPLEMENTATION
+   --------------
+   Reactive observer that re-applies patches whenever DOM changes (tab
+   navigation, modal open/close, dynamic content rendering). All patches are
+   idempotent via data-* attributes.
+   ======================================================================== */
+
+(function () {
+  'use strict';
+
+  if (window.KR && window.KR.uxPolish) {
+    console.warn('[KOMPAS] uxPolish already loaded; skipping.');
+    return;
+  }
+
+  /* ─── Helpers ──────────────────────────────────────────────────────── */
+
+  function getState() {
+    if (window.KR && window.KR.appState && typeof window.KR.appState.getKompas === 'function') {
+      return window.KR.appState.getKompas() || {};
+    }
+    try { return JSON.parse(localStorage.getItem('kompas_v5') || '{}'); } catch (e) { return {}; }
+  }
+
+  function hasApiKey() {
+    const s = getState();
+    return !!(s.apiKey && String(s.apiKey).trim().length > 10);
+  }
+
+  /* ─── Patch 1: "Inspirace z trhu" terminology unification ──────────── */
+
+  function applyInspiracePatch() {
+    const h2s = document.querySelectorAll('h2');
+    for (const h of h2s) {
+      if (h.hasAttribute('data-kr-inspirace-patched')) continue;
+
+      const txt = h.textContent.trim();
+      // Match "Co konkurence dělá a my ne" optionally followed by " (N)"
+      // Also match alternate "Mezery" if vendor renders different text
+      const m = txt.match(/^(?:Co konkurence dělá a my ne|Mezery|Konkurenční mezery)\s*(?:\((\d+)\))?$/);
+      if (!m) continue;
+
+      const count = m[1] || '';
+      // Replace H2 text to match sidebar.
+      // Vendor's own subtitle ("Inspirace z konkurenčních taktik pro naši akviziční
+      // strategii.") is rendered as a sibling <p> in the parent component, so we
+      // don't need to inject anything — just unify the H2 with the sidebar label.
+      h.textContent = 'Inspirace z trhu' + (count ? ' (' + count + ')' : '');
+      h.setAttribute('data-kr-inspirace-patched', 'true');
+    }
+  }
+
+  /* ─── Patch 2: AI button hints when API key missing ────────────────── */
+
+  // Buttons whose click triggers an AI/LLM call. Match by visible text.
+  const AI_BUTTON_PATTERNS = [
+    /AI Discovery/i,
+    /AI extrahovat/i,
+    /AI analyzovat/i,
+    /AI synt[éez]z/i,
+    /AI generovat/i,
+    /AI analýza/i,
+    /AI extrakce/i,
+    /AI návrh/i,
+    /AI mapování/i,
+    /AI hloubkov[ýá]/i,
+    /Spustit pr[ůu]zkum/i,
+    /Hloubkov[ýý] průzkum/i,
+    /Vygenerovat/i,           // covers section regen buttons in Report Readiness
+    /Generovat vše naráz/i,
+    /Znovu prozkoumat/i,
+    /Přepočítat C4/i,
+    /Analyzovat socky/i
+  ];
+
+  const NO_KEY_TOOLTIP = 'Vyžaduje API klíč Anthropic. Klikněte na "⚠ Nastavte API klíč" vpravo nahoře nebo na ⚙ (Nastavení).';
+
+  /* Inject a global CSS rule once that gives a visual hint (reduced opacity
+   * and a subtle padlock indicator) to AI buttons when API key is missing.
+   * CSS rules survive React re-renders even if our data-attribute gets
+   * temporarily cleared, as long as it's re-added quickly by the observer. */
+  function injectAiKeyCss() {
+    if (document.getElementById('kr-ai-key-css')) return;
+    const style = document.createElement('style');
+    style.id = 'kr-ai-key-css';
+    style.textContent =
+      'button[data-kr-ai-key-state="no-key"] { opacity: 0.62; transition: opacity 0.15s; }\n' +
+      'button[data-kr-ai-key-state="no-key"]:hover { opacity: 0.85; }\n';
+    document.head.appendChild(style);
+  }
+  const HAS_KEY_TOOLTIP_PREFIX = 'AI akce — použije Anthropic API klíč.';
+
+  function isAiButton(btn) {
+    const txt = (btn.textContent || '').trim();
+    if (!txt) return false;
+    return AI_BUTTON_PATTERNS.some(re => re.test(txt));
+  }
+
+  function applyAiKeyHints() {
+    const hasKey = hasApiKey();
+
+    const buttons = document.querySelectorAll('button');
+    for (const btn of buttons) {
+      if (!isAiButton(btn)) continue;
+
+      const currentState = btn.getAttribute('data-kr-ai-key-state');
+      const desiredState = hasKey ? 'has-key' : 'no-key';
+      if (currentState === desiredState) continue;
+
+      if (!hasKey) {
+        // Tooltip-only approach: survives React re-renders better than
+        // injected DOM children. Vendor already shows a global "⚠ Nastavte
+        // API klíč" badge in the top-right + a "Bez klíče" indicator in the
+        // sidebar header, so we don't need a visual badge on each button.
+        // The tooltip provides actionable instruction when user hovers.
+        btn.title = NO_KEY_TOOLTIP;
+      } else {
+        // Restore — clear our tooltip if we set it (don't blow away vendor's
+        // own title attribute if any). Detect ours by exact-match check.
+        if (btn.title === NO_KEY_TOOLTIP) btn.title = '';
+      }
+
+      btn.setAttribute('data-kr-ai-key-state', desiredState);
+    }
+  }
+
+  /* ─── Patch 3: Make sidebar bottom items visually distinct ─────────── */
+  /* Briefy / Outputy / API integrace open modals (not tabs). Their browser
+   * tooltips already say so (set by research/06-ui-shell.js), but visually
+   * they look identical to tab navigation buttons. Add a subtle indicator
+   * that these open modals — a small unicode arrow "↗" hint. */
+
+  function applySidebarModalHints() {
+    const items = [
+      { id: 'kr-nav-outputs', label: 'Outputy' },
+      { id: 'kr-nav-settings', label: 'API integrace' }
+    ];
+    // Also Briefy (id: kb-nav-item)
+    const briefyBtn = document.querySelector('#kb-nav-item');
+    if (briefyBtn) items.unshift({ el: briefyBtn, label: 'Briefy' });
+
+    for (const item of items) {
+      const btn = item.el || document.getElementById(item.id);
+      if (!btn) continue;
+      if (btn.hasAttribute('data-kr-modal-hint')) continue;
+
+      // Ensure title is set (vendor's research phase sets it, but be safe)
+      if (!btn.title || btn.title === item.label) {
+        btn.title = btn.title || ('Otevřít ' + item.label.toLowerCase() + ' (modální okno)');
+      }
+      btn.setAttribute('data-kr-modal-hint', 'modal');
+    }
+  }
+
+  /* ─── Patch 4: Sidebar version text ────────────────────────────────── */
+  /* Vendor's bundle has hardcoded "Map → Gap → Mix · v6.5" subtitle under
+   * the KOMPAS logo. We're now on v7, so override the displayed text. */
+
+  function applyVersionTextPatch() {
+    // Find leaf DIVs whose text exactly matches the version subtitle
+    const candidates = document.querySelectorAll('div');
+    for (const el of candidates) {
+      if (el.children.length !== 0) continue;
+      if (el.hasAttribute('data-kr-version-patched')) continue;
+      const txt = (el.textContent || '').trim();
+      if (/^Map\s*→\s*Gap\s*→\s*Mix\s*·\s*v[\d.]+$/i.test(txt)) {
+        el.textContent = 'Map → Gap → Mix · v7';
+        el.setAttribute('data-kr-version-patched', 'true');
+      }
+    }
+  }
+
+  /* ─── Main tick + observer ─────────────────────────────────────────── */
+
+  let lastTickAt = 0;
+
+  function tick() {
+    // Throttle
+    if (Date.now() - lastTickAt < 150) return;
+    lastTickAt = Date.now();
+
+    try { applyInspiracePatch(); } catch (e) { console.warn('[uxPolish] inspirace patch:', e); }
+    try { applyAiKeyHints(); } catch (e) { console.warn('[uxPolish] ai hints:', e); }
+    try { applySidebarModalHints(); } catch (e) { console.warn('[uxPolish] sidebar hints:', e); }
+    try { applyVersionTextPatch(); } catch (e) { console.warn('[uxPolish] version text:', e); }
+  }
+
+  function setupObserver() {
+    injectAiKeyCss();
+    tick();
+    const observer = new MutationObserver(() => tick());
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(setupObserver, 1500));
+  } else {
+    setTimeout(setupObserver, 1500);
+  }
+
+  /* ─── Re-apply when API key changes ────────────────────────────────── */
+  // The app stores API key in state via reducer. Listen to storage events
+  // (for cross-tab sync) and also poll the state every 2s for in-tab changes.
+  // Most state changes will also trigger DOM mutations which our observer
+  // catches, but the AI button styling depends on `hasApiKey()` which we
+  // need to re-evaluate periodically.
+
+  setInterval(() => {
+    // Reset our AI button state markers so they get re-applied with current key
+    document.querySelectorAll('[data-kr-ai-key-state]').forEach(btn => {
+      const current = btn.getAttribute('data-kr-ai-key-state');
+      const desired = hasApiKey() ? 'has-key' : 'no-key';
+      if (current !== desired) {
+        btn.removeAttribute('data-kr-ai-key-state');
+        tick();
+      }
+    });
+  }, 2000);
+
+  /* ─── Public API ───────────────────────────────────────────────────── */
+
+  window.KR = window.KR || {};
+  window.KR.uxPolish = {
+    _tick: tick,
+    _isAiButton: isAiButton,
+    _applyInspiracePatch: applyInspiracePatch,
+    _applyAiKeyHints: applyAiKeyHints,
+    _applySidebarModalHints: applySidebarModalHints
+  };
+
+  console.info('[KOMPAS] Phase 22: UX Polish loaded (alpha.40).');
 })();
 </script>
 </body></html>
