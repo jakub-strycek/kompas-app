@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- KOMPAS™ build v7.0.0-alpha.34 (2026-05-12) — Path C source tree (v7-source). See LAYERS.md / FEATURES.md for architecture. -->
+<!-- KOMPAS™ build v7.0.0-alpha.35 (2026-05-12) — Path C source tree (v7-source). See LAYERS.md / FEATURES.md for architecture. -->
 <!-- KOMPAS v6.9.8: Data flow audit + enrichment. 1) Agresivní varianta rozšířena z 5 gap TITULŮ na plný kontext (brief, SWOT, segmenty, konkurenti, mezery, důkazy, mediální mix, reference k hlavní strategii) — není to už datově hladová kopie, ale plnohodnotná kontra-strategie. 2) briefAn (SWOT z úvodní analýzy briefu) nově vstupuje do yi.strategy jako samostatná sekce, plus instrukce v system-role aby AI explicitně vázala doporučení na silné/slabé stránky, příležitosti, rizika. 3) Media prompt (yi.media) rozšířen o demandPools, evidence a positioning — kanály se teď doporučují s vědomím segmentů, tónu značky a tržních důkazů. 4) Positioning framework prompt rozšířen o naše analyzované konkurenty, top mezery a segmenty — white space se identifikuje na základě REÁLNÉ competitive intel, ne jen archetypu. Žádné AI volání nebylo zjednodušeno — všechny předchozí datové vazby zachovány. -->
-<html lang="cs"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>KOMPAS™ v7.0.0-alpha.34 — Competitive Growth Operating System</title><link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%234f46e5'/><text x='16' y='22' text-anchor='middle' fill='white' font-size='18' font-weight='bold'>K</text></svg>"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}@keyframes spin{to{transform:rotate(360deg)}}</style></head><body><div id="root"></div><script type="module">
+<html lang="cs"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>KOMPAS™ v7.0.0-alpha.35 — Competitive Growth Operating System</title><link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%234f46e5'/><text x='16' y='22' text-anchor='middle' fill='white' font-size='18' font-weight='bold'>K</text></svg>"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}@keyframes spin{to{transform:rotate(360deg)}}</style></head><body><div id="root"></div><script type="module">
 (function(){const t=document.createElement("link").relList;if(t&&t.supports&&t.supports("modulepreload"))return;for(const i of document.querySelectorAll('link[rel="modulepreload"]'))r(i);new MutationObserver(i=>{for(const o of i)if(o.type==="childList")for(const a of o.addedNodes)a.tagName==="LINK"&&a.rel==="modulepreload"&&r(a)}).observe(document,{childList:!0,subtree:!0});function n(i){const o={};return i.integrity&&(o.integrity=i.integrity),i.referrerPolicy&&(o.referrerPolicy=i.referrerPolicy),i.crossOrigin==="use-credentials"?o.credentials="include":i.crossOrigin==="anonymous"?o.credentials="omit":o.credentials="same-origin",o}function r(i){if(i.ep)return;i.ep=!0;const o=n(i);fetch(i.href,o)}})();var Ls=typeof globalThis<"u"?globalThis:typeof window<"u"?window:typeof global<"u"?global:typeof self<"u"?self:{};function be(e){return e&&e.__esModule&&Object.prototype.hasOwnProperty.call(e,"default")?e.default:e}var Yx={exports:{}},iu={},Xx={exports:{}},se={};/**
  * @license React
  * react.production.min.js
@@ -27521,6 +27521,69 @@ if (document.readyState === 'loading') {
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
+  /* alpha.34: CRITICAL READ FIX
+   * Storage shape from research/02-state.js writeOutputs():
+   *   { version: '1.0.0', outputs: [
+   *       { id, type: 'strategy', data: {...}, createdAt, ... },
+   *       { id, type: 'execution_plan', data: {...}, ... },
+   *       ...
+   *   ] }
+   *
+   * Previous buildXSection functions read `researchOutputs.strategyV2`
+   * (camelCase singular property) which never existed in storage. As a
+   * result, Strategy v2, Execution Plan, Bold Move, and Audience Versions
+   * were SILENTLY skipped from PDF for all users.
+   *
+   * This helper does the lookup correctly: filter by type, pick latest.
+   * Also forward-compat: if a future state branch stores under camelKey
+   * directly, that's returned too.
+   */
+  function getLatestOutputByType(researchOutputs, type) {
+    if (!researchOutputs) return null;
+
+    // Camel-case alias for forward-compat lookup
+    const CAMEL = {
+      strategy: 'strategyV2',
+      execution_plan: 'executionPlan',
+      bold_move: 'boldMove',
+      audience_versions: 'audienceVersions'
+    };
+    const camelKey = CAMEL[type];
+
+    // Branch 1: storage shape (object with outputs array)
+    if (researchOutputs && Array.isArray(researchOutputs.outputs)) {
+      const filtered = researchOutputs.outputs.filter(o => o && o.type === type);
+      if (filtered.length === 0) {
+        // Fall through to legacy camelKey path
+      } else {
+        // Pick latest by createdAt (fallback: last in array order)
+        const latest = filtered.reduce((acc, b) => {
+          if (!acc) return b;
+          const aT = acc.createdAt || 0;
+          const bT = b.createdAt || 0;
+          return bT >= aT ? b : acc;
+        }, null);
+        if (latest && latest.data) return latest.data;
+      }
+    }
+
+    // Branch 2: array directly
+    if (Array.isArray(researchOutputs)) {
+      const filtered = researchOutputs.filter(o => o && o.type === type);
+      if (filtered.length > 0) {
+        const latest = filtered[filtered.length - 1];
+        return latest.data || latest;
+      }
+    }
+
+    // Branch 3: legacy/forward-compat — direct camelKey property
+    if (camelKey && researchOutputs[camelKey]) {
+      return researchOutputs[camelKey];
+    }
+
+    return null;
+  }
+
   /**
    * Minimal markdown → HTML converter for Research output content.
    * Supports: h1/h2/h3, paragraphs, **bold**, *italic*, - / * lists,
@@ -27647,7 +27710,7 @@ if (document.readyState === 'loading') {
   /* Each returns HTML string (or '' if data absent) */
 
   function buildStrategyV2Section(researchOutputs, kompasContext) {
-    const data = researchOutputs && researchOutputs.strategyV2;
+    const data = getLatestOutputByType(researchOutputs, 'strategy');
     if (!data) return '';
     if (!window.KR.strategyV2 || typeof window.KR.strategyV2.renderAsMarkdown !== 'function') return '';
 
@@ -27666,7 +27729,7 @@ if (document.readyState === 'loading') {
   }
 
   function buildExecutionPlanSection(researchOutputs, kompasContext) {
-    const data = researchOutputs && researchOutputs.executionPlan;
+    const data = getLatestOutputByType(researchOutputs, 'execution_plan');
     if (!data) return '';
     if (!window.KR.executionPlan || typeof window.KR.executionPlan !== 'object') return '';
 
@@ -27692,7 +27755,7 @@ if (document.readyState === 'loading') {
   }
 
   function buildBoldMoveSection(researchOutputs, kompasContext) {
-    const data = researchOutputs && researchOutputs.boldMove;
+    const data = getLatestOutputByType(researchOutputs, 'bold_move');
     if (!data) return '';
     if (!window.KR.boldMove || typeof window.KR.boldMove.renderAsMarkdown !== 'function') return '';
 
@@ -27710,7 +27773,7 @@ if (document.readyState === 'loading') {
   }
 
   function buildAudienceVersionsSection(researchOutputs, kompasContext) {
-    const data = researchOutputs && researchOutputs.audienceVersions;
+    const data = getLatestOutputByType(researchOutputs, 'audience_versions');
     if (!data) return '';
     if (!window.KR.audienceVersions || typeof window.KR.audienceVersions.renderAsMarkdown !== 'function') return '';
 
