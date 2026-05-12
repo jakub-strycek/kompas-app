@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- KOMPAS™ build v7.0.0-alpha.35 (2026-05-12) — Path C source tree (v7-source). See LAYERS.md / FEATURES.md for architecture. -->
+<!-- KOMPAS™ build v7.0.0-alpha.37 (2026-05-12) — Path C source tree (v7-source). See LAYERS.md / FEATURES.md for architecture. -->
 <!-- KOMPAS v6.9.8: Data flow audit + enrichment. 1) Agresivní varianta rozšířena z 5 gap TITULŮ na plný kontext (brief, SWOT, segmenty, konkurenti, mezery, důkazy, mediální mix, reference k hlavní strategii) — není to už datově hladová kopie, ale plnohodnotná kontra-strategie. 2) briefAn (SWOT z úvodní analýzy briefu) nově vstupuje do yi.strategy jako samostatná sekce, plus instrukce v system-role aby AI explicitně vázala doporučení na silné/slabé stránky, příležitosti, rizika. 3) Media prompt (yi.media) rozšířen o demandPools, evidence a positioning — kanály se teď doporučují s vědomím segmentů, tónu značky a tržních důkazů. 4) Positioning framework prompt rozšířen o naše analyzované konkurenty, top mezery a segmenty — white space se identifikuje na základě REÁLNÉ competitive intel, ne jen archetypu. Žádné AI volání nebylo zjednodušeno — všechny předchozí datové vazby zachovány. -->
-<html lang="cs"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>KOMPAS™ v7.0.0-alpha.35 — Competitive Growth Operating System</title><link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%234f46e5'/><text x='16' y='22' text-anchor='middle' fill='white' font-size='18' font-weight='bold'>K</text></svg>"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}@keyframes spin{to{transform:rotate(360deg)}}</style></head><body><div id="root"></div><script type="module">
+<html lang="cs"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>KOMPAS™ v7.0.0-alpha.37 — Competitive Growth Operating System</title><link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%234f46e5'/><text x='16' y='22' text-anchor='middle' fill='white' font-size='18' font-weight='bold'>K</text></svg>"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet"><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'DM Sans',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}@keyframes spin{to{transform:rotate(360deg)}}</style></head><body><div id="root"></div><script type="module">
 (function(){const t=document.createElement("link").relList;if(t&&t.supports&&t.supports("modulepreload"))return;for(const i of document.querySelectorAll('link[rel="modulepreload"]'))r(i);new MutationObserver(i=>{for(const o of i)if(o.type==="childList")for(const a of o.addedNodes)a.tagName==="LINK"&&a.rel==="modulepreload"&&r(a)}).observe(document,{childList:!0,subtree:!0});function n(i){const o={};return i.integrity&&(o.integrity=i.integrity),i.referrerPolicy&&(o.referrerPolicy=i.referrerPolicy),i.crossOrigin==="use-credentials"?o.credentials="include":i.crossOrigin==="anonymous"?o.credentials="omit":o.credentials="same-origin",o}function r(i){if(i.ep)return;i.ep=!0;const o=n(i);fetch(i.href,o)}})();var Ls=typeof globalThis<"u"?globalThis:typeof window<"u"?window:typeof global<"u"?global:typeof self<"u"?self:{};function be(e){return e&&e.__esModule&&Object.prototype.hasOwnProperty.call(e,"default")?e.default:e}var Yx={exports:{}},iu={},Xx={exports:{}},se={};/**
  * @license React
  * react.production.min.js
@@ -26993,6 +26993,10 @@ if (document.readyState === 'loading') {
       body += buildBoldMove(state);
       // NEW: Channel Strategy (concretizes media mix from mediaEngine)
       if (additions.buildChannelStrategy) body += additions.buildChannelStrategy(state);
+      // NEW (alpha.37): B19 Affinity Media — Top 30 alternative channels
+      if (window.KR.affinityMedia && typeof window.KR.affinityMedia.buildPdfHtml === 'function') {
+        body += window.KR.affinityMedia.buildPdfHtml(state);
+      }
       // NEW: Quick Wins (own page, before roadmap)
       if (additions.buildQuickWinsPage) body += additions.buildQuickWinsPage(state);
       body += buildRoadmap(state);
@@ -29916,6 +29920,130 @@ if (document.readyState === 'loading') {
       onProceedV2(result);
     };
 
+    /* ─── alpha.37: Ignorovat + Bulk Resolve wiring ──────────────────── */
+    function refreshIssuesTab() {
+      const content = document.getElementById('kqa-content-issues');
+      if (!content) return;
+      // Re-run QA to get fresh result (in case AI generation succeeded)
+      try {
+        const freshResult = window.KR.qaExport.runExportQA(getState());
+        content.innerHTML = buildIssuesHtml(freshResult);
+        // Re-wire ignore + bulk buttons after re-render
+        wireIgnoreAndBulk();
+      } catch (e) {
+        console.warn('[kqa] refreshIssuesTab failed:', e);
+      }
+    }
+
+    function wireIgnoreAndBulk() {
+      const qaIgn = window.KR.qaIgnore;
+      if (!qaIgn) return;
+
+      // Per-issue Ignorovat
+      document.querySelectorAll('.kqa-issue-ignore').forEach(btn => {
+        btn.onclick = function (e) {
+          e.stopPropagation();
+          const issueId = btn.getAttribute('data-issue-id');
+          if (!issueId) return;
+          qaIgn.ignoreIssue(issueId);
+          // Fade out card, then refresh
+          const card = btn.closest('[data-issue-id]');
+          if (card) {
+            card.style.transition = 'opacity 0.25s, transform 0.25s';
+            card.style.opacity = '0';
+            card.style.transform = 'translateX(20px)';
+            setTimeout(refreshIssuesTab, 280);
+          } else {
+            refreshIssuesTab();
+          }
+        };
+      });
+
+      // Ignorovat vše
+      const ignoreAllBtn = document.getElementById('kqa-ignore-all');
+      if (ignoreAllBtn) {
+        ignoreAllBtn.onclick = function () {
+          if (!window.confirm('Skrýt všechna ' + (result.issues || []).filter(i => !qaIgn.isIssueIgnored(qaIgn.makeIssueId(i))).length + ' upozornění? Lze obnovit přes "Obnovit všechna" pod seznamem.')) return;
+          result.issues.forEach(i => qaIgn.ignoreIssue(qaIgn.makeIssueId(i)));
+          refreshIssuesTab();
+        };
+      }
+
+      // Obnovit všechna
+      const resetBtn = document.getElementById('kqa-reset-ignored');
+      if (resetBtn) {
+        resetBtn.onclick = function () {
+          qaIgn.clearAllIgnored();
+          refreshIssuesTab();
+        };
+      }
+
+      // Vyřešit vše naráz
+      const bulkBtn = document.getElementById('kqa-bulk-resolve');
+      if (bulkBtn) {
+        bulkBtn.onclick = async function () {
+          bulkBtn.disabled = true;
+          bulkBtn.style.opacity = '0.6';
+          const orig = bulkBtn.innerHTML;
+          try {
+            await runBulkResolve((msg) => {
+              bulkBtn.innerHTML = '⏳ ' + escHtml(msg).slice(0, 60);
+            });
+            bulkBtn.innerHTML = '✓ Hotovo';
+            bulkBtn.style.background = '#059669';
+            setTimeout(() => {
+              refreshIssuesTab();
+            }, 1000);
+          } catch (e) {
+            console.error('[kqa] bulk resolve failed:', e);
+            bulkBtn.innerHTML = '⚠ ' + (e.message || '?').slice(0, 50);
+            bulkBtn.style.background = '#dc2626';
+            setTimeout(() => {
+              bulkBtn.innerHTML = orig;
+              bulkBtn.style.background = '#4f46e5';
+              bulkBtn.disabled = false;
+              bulkBtn.style.opacity = '1';
+            }, 4500);
+          }
+        };
+      }
+    }
+
+    /* Sequential AI generator runner — used by "Vyřešit vše naráz" */
+    async function runBulkResolve(onProgress) {
+      const state = getState();
+      if (!state) throw new Error('Stav aplikace nedostupný');
+      if (!state.apiKey) throw new Error('API klíč není nastaven');
+
+      const tasks = [];
+      if (window.KR.consultantSectionsGen && typeof window.KR.consultantSectionsGen.generate === 'function') {
+        tasks.push({ label: 'AI sekce B22-B28', run: () => window.KR.consultantSectionsGen.generate(state, { onProgress: (m) => onProgress('B22-B28: ' + m) }) });
+      }
+      if (window.KR.kpiTree && typeof window.KR.kpiTree.generate === 'function') {
+        tasks.push({ label: 'KPI Tree (B30)', run: () => window.KR.kpiTree.generate(state, { onProgress: (m) => onProgress('KPI: ' + m) }) });
+      }
+      if (window.KR.decisionLayer && typeof window.KR.decisionLayer.generate === 'function') {
+        tasks.push({ label: 'Decision Layer (A4-A11)', run: () => window.KR.decisionLayer.generate(state, { onProgress: (m) => onProgress('Decision: ' + m) }) });
+      }
+      if (window.KR.consultantPack && typeof window.KR.consultantPack.generate === 'function') {
+        tasks.push({ label: 'Consultant Pack (P1-P8)', run: () => window.KR.consultantPack.generate(state, { onProgress: (m) => onProgress('Pack: ' + m) }) });
+      }
+
+      if (tasks.length === 0) throw new Error('Žádný AI generator není k dispozici');
+
+      for (let i = 0; i < tasks.length; i++) {
+        const t = tasks[i];
+        onProgress('(' + (i + 1) + '/' + tasks.length + ') ' + t.label + '...');
+        try { await t.run(); }
+        catch (err) { console.warn('[bulk] task failed:', t.label, err); }
+        if (i < tasks.length - 1) await new Promise(r => setTimeout(r, 1500));
+      }
+      return { completed: tasks.length };
+    }
+
+    // Initial wire
+    wireIgnoreAndBulk();
+
     // Tab switching — also remembers active tab for refresh after AI generation
     const tabIssues = document.getElementById('kqa-tab-issues');
     const tabAI = document.getElementById('kqa-tab-ai');
@@ -29995,6 +30123,26 @@ if (document.readyState === 'loading') {
   }
 
   function buildIssuesHtml(result) {
+    // alpha.37: lazy-init shared qaIgnore namespace if phases/09f hasn't loaded yet
+    if (!window.KR.qaIgnore) {
+      const KEY = 'kr_qa_ignored';
+      window.KR.qaIgnore = {
+        makeIssueId: function (i) {
+          return i.id || ((i.severity || 'x') + ':' + (i.message || '').slice(0, 60).replace(/\s+/g, '_'));
+        },
+        getIgnoredIssues: function () {
+          try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { return []; }
+        },
+        isIssueIgnored: function (id) { return this.getIgnoredIssues().indexOf(id) >= 0; },
+        ignoreIssue: function (id) {
+          const arr = this.getIgnoredIssues();
+          if (arr.indexOf(id) < 0) { arr.push(id); localStorage.setItem(KEY, JSON.stringify(arr)); }
+        },
+        clearAllIgnored: function () { localStorage.removeItem(KEY); }
+      };
+    }
+    const qaIgn = window.KR.qaIgnore;
+
     if (result.issues.length === 0) {
       return '<div style="text-align:center;padding:40px 0;color:#8888a0;font-size:13px">' +
         '<div style="font-size:32px;opacity:0.4;margin-bottom:10px">✓</div>' +
@@ -30010,12 +30158,42 @@ if (document.readyState === 'loading') {
       low:      { bg: '#f8f7f4', bd: '#e5e3df', c: '#8888a0', l: 'INFO' }
     };
 
+    // alpha.37: filter out ignored issues
+    const visibleIssues = result.issues.filter(i => !qaIgn.isIssueIgnored(qaIgn.makeIssueId(i)));
+    const ignoredCount = result.issues.length - visibleIssues.length;
+
     const grouped = { critical: [], high: [], medium: [], low: [] };
-    result.issues.forEach(i => {
+    visibleIssues.forEach(i => {
       (grouped[i.severity] || grouped.low).push(i);
     });
 
     let html = '';
+
+    // alpha.37: Top action bar — Vyřešit vše naráz + Ignorovat vše
+    const hasResolvable = visibleIssues.length > 0;
+    if (hasResolvable) {
+      html +=
+        '<div style="display:flex;gap:8px;align-items:center;padding:10px 12px;background:linear-gradient(135deg,#f5f3ff,#eef0ff);border:1px solid #ddd6fe;border-radius:8px;margin-bottom:12px;flex-wrap:wrap">' +
+          '<div style="flex:1;min-width:180px;font-size:11.5px;color:#4338ca;font-weight:600">' +
+            '⚡ ' + visibleIssues.length + ' upozornění — chcete je vyřešit najednou nebo skrýt?' +
+          '</div>' +
+          '<button id="kqa-bulk-resolve" type="button" style="' +
+              'padding:7px 12px;background:#4f46e5;color:#fff;border:none;' +
+              'border-radius:6px;font-size:11.5px;font-weight:600;cursor:pointer;' +
+              'display:inline-flex;align-items:center;gap:5px;font-family:inherit" ' +
+              'title="Spustí všechny AI generátory sekvenčně (~60-90s)">' +
+            '🪄 Vyřešit vše naráz (~90s)' +
+          '</button>' +
+          '<button id="kqa-ignore-all" type="button" style="' +
+              'padding:7px 12px;background:#fff;color:#4338ca;border:1px solid #c7d2fe;' +
+              'border-radius:6px;font-size:11.5px;font-weight:600;cursor:pointer;' +
+              'display:inline-flex;align-items:center;gap:5px;font-family:inherit" ' +
+              'title="Skryje všechna upozornění (lze obnovit níže)">' +
+            '✕ Ignorovat vše' +
+          '</button>' +
+        '</div>';
+    }
+
     ['critical', 'high', 'medium', 'low'].forEach(sev => {
       if (!grouped[sev].length) return;
       const s = sevColors[sev];
@@ -30025,9 +30203,11 @@ if (document.readyState === 'loading') {
           s.l + ' <span style="opacity:0.6;font-weight:600">(' + grouped[sev].length + ')</span>' +
         '</div>';
       grouped[sev].forEach(iss => {
+        const issueId = qaIgn.makeIssueId(iss);
         html +=
-          '<div style="background:' + s.bg + ';border:1px solid ' + s.bd + ';border-left:3px solid ' + s.c + ';border-radius:6px;padding:9px 12px;margin-bottom:5px">' +
-            '<div style="font-size:12.5px;font-weight:600;color:#1a1a2e;line-height:1.4">' + escHtml(iss.message) + '</div>';
+          '<div data-issue-id="' + escHtml(issueId) + '" style="background:' + s.bg + ';border:1px solid ' + s.bd + ';border-left:3px solid ' + s.c + ';border-radius:6px;padding:9px 12px;margin-bottom:5px;display:flex;gap:8px;align-items:flex-start">' +
+            '<div style="flex:1;min-width:0">' +
+              '<div style="font-size:12.5px;font-weight:600;color:#1a1a2e;line-height:1.4">' + escHtml(iss.message) + '</div>';
         if (iss.suggestion) {
           html += '<div style="font-size:11px;color:#3d3d56;line-height:1.55;margin-top:3px">💡 ' + escHtml(iss.suggestion) + '</div>';
         }
@@ -30036,8 +30216,29 @@ if (document.readyState === 'loading') {
             iss.examples.map(e => '"' + escHtml(e) + '"').join(' · ') + '</div>';
         }
         html += '</div>';
+        // alpha.37: per-issue Ignorovat button
+        html +=
+          '<button class="kqa-issue-ignore" data-issue-id="' + escHtml(issueId) + '" type="button" ' +
+            'title="Ignorovat toto upozornění — nezobrazí se příště" ' +
+            'style="flex-shrink:0;border:1px solid ' + s.bd + ';background:rgba(255,255,255,0.5);color:' + s.c + ';' +
+            'padding:4px 9px;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;opacity:0.75;white-space:nowrap;font-family:inherit" ' +
+            'onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.75">' +
+            '✕ Ignorovat' +
+          '</button>';
+        html += '</div>';
       });
     });
+
+    // alpha.37: Reset ignored footer (only if anything ignored)
+    if (ignoredCount > 0) {
+      html += '<div style="margin-top:14px;padding:8px 12px;background:#f3f4f6;border-radius:6px;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#6b7280">' +
+        '<span>' + ignoredCount + ' upozornění je ignorováno (nezobrazují se)</span>' +
+        '<button id="kqa-reset-ignored" type="button" style="background:transparent;border:none;color:#4f46e5;cursor:pointer;font-size:11px;font-weight:600;text-decoration:underline;font-family:inherit">' +
+          'Obnovit všechna' +
+        '</button>' +
+      '</div>';
+    }
+
     return html;
   }
 
@@ -30275,6 +30476,48 @@ if (document.readyState === 'loading') {
     return btn;
   }
 
+  /* ─── alpha.37: Ignored issues store ────────────────────────────────── */
+  const IGNORED_KEY = 'kr_qa_ignored';
+
+  function makeIssueId(issue) {
+    if (issue.id) return issue.id;
+    // Stable hash: severity + first 60 chars of message
+    return (issue.severity || 'x') + ':' + (issue.message || '').slice(0, 60).replace(/\s+/g, '_');
+  }
+
+  function getIgnoredIssues() {
+    try {
+      const raw = localStorage.getItem(IGNORED_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) { return []; }
+  }
+
+  function isIssueIgnored(issueId) {
+    return getIgnoredIssues().indexOf(issueId) >= 0;
+  }
+
+  function ignoreIssue(issueId) {
+    const ignored = getIgnoredIssues();
+    if (ignored.indexOf(issueId) < 0) {
+      ignored.push(issueId);
+      localStorage.setItem(IGNORED_KEY, JSON.stringify(ignored));
+    }
+  }
+
+  function clearAllIgnored() {
+    localStorage.removeItem(IGNORED_KEY);
+  }
+
+  // Expose as global API so phases/10 modal (the one user actually sees) can reuse
+  window.KR = window.KR || {};
+  window.KR.qaIgnore = window.KR.qaIgnore || {
+    makeIssueId: makeIssueId,
+    getIgnoredIssues: getIgnoredIssues,
+    isIssueIgnored: isIssueIgnored,
+    ignoreIssue: ignoreIssue,
+    clearAllIgnored: clearAllIgnored
+  };
+
   /* ─── Issue rendering ─────────────────────────────────────────────── */
   function renderIssue(issue) {
     const colors = {
@@ -30283,15 +30526,24 @@ if (document.readyState === 'loading') {
       suggestion: { bg: '#f0f9ff', border: '#bae6fd', text: '#075985', icon: '·' }
     };
     const c = colors[issue.severity] || colors.suggestion;
-    return '<div style="padding: 10px 12px; background: ' + c.bg + '; border: 1px solid ' + c.border + '; ' +
+    const issueId = makeIssueId(issue);
+    if (isIssueIgnored(issueId)) return ''; // alpha.37: skip ignored
+    return '<div data-issue-id="' + escapeHtml(issueId) + '" style="padding: 10px 12px; background: ' + c.bg + '; border: 1px solid ' + c.border + '; ' +
       'border-radius: 6px; margin-bottom: 6px; font-size: 12px; line-height: 1.5">' +
       '<div style="display: flex; gap: 8px; align-items: flex-start">' +
-        '<span style="color: ' + c.text + '; font-weight: 700; flex-shrink: 0">' + c.icon + '</span>' +
-        '<div style="flex: 1">' +
+        '<span style="color: ' + c.text + '; font-weight: 700; flex-shrink: 0; margin-top:1px">' + c.icon + '</span>' +
+        '<div style="flex: 1; min-width: 0">' +
           '<div style="color: ' + c.text + '; font-weight: 600">' + escapeHtml(issue.message) + '</div>' +
           (issue.suggestedFix ? '<div style="color: ' + c.text + '; opacity: 0.8; margin-top: 3px; font-size: 11px">→ ' + escapeHtml(issue.suggestedFix) + '</div>' : '') +
           (issue.excerpt ? '<div style="font-size: 10.5px; opacity: 0.7; margin-top: 4px; font-family: var(--kr-font-mono, monospace); padding: 4px 6px; background: rgba(0,0,0,0.04); border-radius: 4px">… ' + escapeHtml(issue.excerpt.slice(0, 200)) + ' …</div>' : '') +
         '</div>' +
+        '<button type="button" class="kr-issue-ignore" data-issue-id="' + escapeHtml(issueId) + '" ' +
+          'title="Ignorovat toto upozornění — nezobrazí se příště ani při exportu" ' +
+          'style="flex-shrink: 0; border: 1px solid ' + c.border + '; background: rgba(255,255,255,0.5); color: ' + c.text + '; ' +
+          'padding: 4px 9px; border-radius: 5px; font-size: 11px; font-weight: 600; cursor: pointer; opacity: 0.75; align-self:flex-start; white-space:nowrap" ' +
+          'onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.75">' +
+          '✕ Ignorovat' +
+        '</button>' +
       '</div>' +
     '</div>';
   }
@@ -30343,13 +30595,43 @@ if (document.readyState === 'loading') {
     const suggestions = qaResult.issues.filter(i => i.severity === 'suggestion');
 
     if (critical.length) {
-      bodyHtml += '<h3 style="margin: 16px 0 8px; font-size: 13px; font-weight: 700; color: var(--kr-danger, #dc2626)">' +
-        critical.length + ' kritická chyba(y) — blokuje export</h3>' +
+      const visibleCritical = critical.filter(i => !isIssueIgnored(makeIssueId(i)));
+      bodyHtml += '<div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 8px">' +
+          '<h3 style="margin:0;font-size:13px;font-weight:700;color:var(--kr-danger,#dc2626)">' +
+            visibleCritical.length + ' kritická chyba(y)' +
+          '</h3>' +
+          (visibleCritical.length > 0 ?
+            '<button id="kr-bulk-resolve-critical" type="button" style="' +
+              'padding:6px 12px;background:#dc2626;color:#fff;border:none;border-radius:6px;' +
+              'font-size:11.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px" ' +
+              'title="Spustí AI generaci sekvenčně pro všechny chybějící sekce">' +
+              '🪄 Vyřešit vše naráz (~90s)' +
+            '</button>' : '') +
+        '</div>' +
         critical.map(renderIssue).join('');
     }
     if (warnings.length) {
-      bodyHtml += '<h3 style="margin: 16px 0 8px; font-size: 13px; font-weight: 700; color: var(--kr-warn, #f59e0b)">' +
-        warnings.length + ' upozornění</h3>' +
+      const visibleWarnings = warnings.filter(i => !isIssueIgnored(makeIssueId(i)));
+      bodyHtml += '<div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 8px">' +
+          '<h3 style="margin:0;font-size:13px;font-weight:700;color:var(--kr-warn,#f59e0b)">' +
+            visibleWarnings.length + ' upozornění' +
+          '</h3>' +
+          (visibleWarnings.length > 0 ?
+            '<div style="display:flex;gap:6px">' +
+              '<button id="kr-bulk-resolve-warnings" type="button" style="' +
+                'padding:6px 12px;background:#d97706;color:#fff;border:none;border-radius:6px;' +
+                'font-size:11.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px" ' +
+                'title="Spustí AI generaci pro všechny doporučené chybějící sekce">' +
+                '🪄 Vyřešit vše naráz (~90s)' +
+              '</button>' +
+              '<button id="kr-ignore-all-warnings" type="button" style="' +
+                'padding:6px 12px;background:transparent;color:#92400e;border:1px solid #fde68a;border-radius:6px;' +
+                'font-size:11.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px" ' +
+                'title="Skryje všechna upozornění (lze obnovit přes Resetovat ignorované)">' +
+                '✕ Ignorovat vše' +
+              '</button>' +
+            '</div>' : '') +
+        '</div>' +
         warnings.map(renderIssue).join('');
     }
     if (suggestions.length) {
@@ -30361,6 +30643,17 @@ if (document.readyState === 'loading') {
     if (!critical.length && !warnings.length && !suggestions.length) {
       bodyHtml += '<div style="padding: 16px; text-align: center; color: var(--kr-success, #10b981); font-size: 14px">' +
         '✓ Všech 15 QA kontrol prošlo bez problémů.</div>';
+    }
+
+    // alpha.37: Reset ignored issues link (small, only if anything ignored)
+    const ignoredCount = getIgnoredIssues().length;
+    if (ignoredCount > 0) {
+      bodyHtml += '<div style="margin-top:12px;padding:8px 12px;background:#f3f4f6;border-radius:6px;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#6b7280">' +
+        '<span>' + ignoredCount + ' upozornění je ignorováno</span>' +
+        '<button id="kr-reset-ignored" type="button" style="background:transparent;border:none;color:#4f46e5;cursor:pointer;font-size:11px;font-weight:600;text-decoration:underline">' +
+          'Obnovit všechna' +
+        '</button>' +
+      '</div>';
     }
 
     // Footer buttons
@@ -30408,10 +30701,154 @@ if (document.readyState === 'loading') {
       if (cancelBtn) cancelBtn.addEventListener('click', () => closeWith('cancel'));
       if (regenBtn) regenBtn.addEventListener('click', () => closeWith('regenerate'));
       if (exportBtn) exportBtn.addEventListener('click', () => closeWith('export'));
+
+      /* alpha.37: per-issue Ignorovat handlers */
+      dialog.querySelectorAll('.kr-issue-ignore').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const issueId = btn.getAttribute('data-issue-id');
+          if (!issueId) return;
+          ignoreIssue(issueId);
+          // Animate out then re-render modal
+          const card = btn.closest('[data-issue-id]');
+          if (card) {
+            card.style.transition = 'opacity 0.25s, transform 0.25s';
+            card.style.opacity = '0';
+            card.style.transform = 'translateX(20px)';
+            setTimeout(() => {
+              closeWith('refresh');
+              setTimeout(() => show(qaResult, opts).then(r => resolve(r)), 50);
+            }, 280);
+          }
+        });
+      });
+
+      /* alpha.37: Ignorovat vše (warnings only) */
+      const ignoreAllBtn = dialog.querySelector('#kr-ignore-all-warnings');
+      if (ignoreAllBtn) {
+        ignoreAllBtn.addEventListener('click', () => {
+          warnings.forEach(w => ignoreIssue(makeIssueId(w)));
+          closeWith('refresh');
+          setTimeout(() => show(qaResult, opts).then(r => resolve(r)), 50);
+        });
+      }
+
+      /* alpha.37: Reset all ignored */
+      const resetIgnoredBtn = dialog.querySelector('#kr-reset-ignored');
+      if (resetIgnoredBtn) {
+        resetIgnoredBtn.addEventListener('click', () => {
+          clearAllIgnored();
+          closeWith('refresh');
+          setTimeout(() => show(qaResult, opts).then(r => resolve(r)), 50);
+        });
+      }
+
+      /* alpha.37: Bulk Resolve — sequential AI generation */
+      const bulkCriticalBtn = dialog.querySelector('#kr-bulk-resolve-critical');
+      const bulkWarningBtn = dialog.querySelector('#kr-bulk-resolve-warnings');
+      [bulkCriticalBtn, bulkWarningBtn].forEach(btn => {
+        if (!btn) return;
+        btn.addEventListener('click', async () => {
+          btn.disabled = true;
+          btn.style.opacity = '0.6';
+          const origLabel = btn.innerHTML;
+          try {
+            await runBulkResolve(btn, (msg) => {
+              btn.innerHTML = '⏳ ' + escapeHtml(msg).slice(0, 50);
+            });
+            btn.innerHTML = '✓ Hotovo';
+            btn.style.background = '#059669';
+            setTimeout(() => {
+              closeWith('refresh');
+              // Re-show with fresh qaResult
+              const freshQa = window.KR.qaGate ? window.KR.qaGate.run() : qaResult;
+              setTimeout(() => show(freshQa, opts).then(r => resolve(r)), 100);
+            }, 800);
+          } catch (e) {
+            console.error('[exportPreview] bulk resolve failed:', e);
+            btn.innerHTML = '⚠ ' + (e.message || '?').slice(0, 40);
+            btn.style.background = '#dc2626';
+            btn.disabled = false;
+            setTimeout(() => { btn.innerHTML = origLabel; btn.style.background = ''; btn.disabled = false; btn.style.opacity = '1'; }, 4000);
+          }
+        });
+      });
+
       overlay.addEventListener('click', (e) => {
         if (e.target === overlay) closeWith('cancel');
       });
     });
+  }
+
+  /* ─── alpha.37: Bulk Resolve sequential runner ──────────────────────
+   * Runs all available AI generators in sequence: B22-B28 consultant sections,
+   * KPI Tree, Decision Layer. Throttled per generator to avoid API spikes.
+   */
+  async function runBulkResolve(btn, onProgress) {
+    const state = (window.KR.appState && window.KR.appState.getKompas()) || null;
+    if (!state) throw new Error('Stav aplikace nedostupný');
+    if (!state.apiKey) throw new Error('API klíč není nastaven');
+
+    onProgress = onProgress || (() => {});
+    const tasks = [];
+
+    // Task 1: B22-B28 consultant sections (if generator available)
+    if (window.KR.consultantSectionsGen && typeof window.KR.consultantSectionsGen.generate === 'function') {
+      tasks.push({
+        label: 'AI sekce B22-B28',
+        run: () => window.KR.consultantSectionsGen.generate(state, {
+          onProgress: (msg) => onProgress('B22-B28: ' + msg)
+        })
+      });
+    }
+    // Task 2: KPI Tree (B30)
+    if (window.KR.kpiTree && typeof window.KR.kpiTree.generate === 'function') {
+      tasks.push({
+        label: 'KPI Tree (B30)',
+        run: () => window.KR.kpiTree.generate(state, {
+          onProgress: (msg) => onProgress('KPI Tree: ' + msg)
+        })
+      });
+    }
+    // Task 3: Decision Layer (A4-A11)
+    if (window.KR.decisionLayer && typeof window.KR.decisionLayer.generate === 'function') {
+      tasks.push({
+        label: 'Decision Layer (A4-A11)',
+        run: () => window.KR.decisionLayer.generate(state, {
+          onProgress: (msg) => onProgress('Decision: ' + msg)
+        })
+      });
+    }
+    // Task 4: Consultant Pack (P1-P8) — only if generator available
+    if (window.KR.consultantPack && typeof window.KR.consultantPack.generate === 'function') {
+      tasks.push({
+        label: 'Consultant Pack (P1-P8)',
+        run: () => window.KR.consultantPack.generate(state, {
+          onProgress: (msg) => onProgress('Pack: ' + msg)
+        })
+      });
+    }
+
+    if (tasks.length === 0) {
+      throw new Error('Žádný AI generator není k dispozici');
+    }
+
+    for (let i = 0; i < tasks.length; i++) {
+      const t = tasks[i];
+      onProgress('(' + (i+1) + '/' + tasks.length + ') ' + t.label + '...');
+      try {
+        await t.run();
+      } catch (err) {
+        console.warn('[bulkResolve] task failed:', t.label, err);
+        // Continue with next — partial success is better than nothing
+      }
+      // Short cooldown between generators
+      if (i < tasks.length - 1) {
+        await new Promise(r => setTimeout(r, 1500));
+      }
+    }
+
+    return { completed: tasks.length };
   }
 
   /* ─── Progress modal for AI generation ─────────────────────────────── */
@@ -31063,6 +31500,7 @@ if (document.readyState === 'loading') {
         { id: 'messaging',         briefId: 'B17', title: 'Messaging Architecture',       statePath: 'strategy.messagingArchitecture' },
         { id: 'boldMove',          briefId: 'B18', title: 'Bold Move',                    statePath: 'strategy.boldMove', layer2Output: 'boldMove' },
         { id: 'channelStrategy',   briefId: 'B19', title: 'Channel Strategy',             statePath: 'mediaRecs' },
+        { id: 'affinityMedia',     briefId: 'B19+', title: 'Alternativní média (Top 30)',  statePath: 'mediaRecs', extensionOf: 'channelStrategy' },
         { id: 'roadmap',           briefId: 'B20', title: '90-Day Roadmap',               statePath: 'strategy.roadmap', layer2Output: 'executionPlan' },
         { id: 'quickWins',         briefId: 'B21', title: 'Quick Wins',                   statePath: 'strategy.quickWins' },
         { id: 'contentPlatform',   briefId: 'B22', title: 'Content & Communication Platform', cachePath: 'strategy.consultantSections.contentPlatform', aiKey: 'contentPlatform' },
@@ -31376,6 +31814,12 @@ if (document.readyState === 'loading') {
   function buildDetailContent(item, state, researchOutputs) {
     const status = item.status;
     let body = '';
+
+    // alpha.37: Affinity Media has its own renderer
+    if (item.id === 'affinityMedia' && window.KR.affinityMedia &&
+        typeof window.KR.affinityMedia.renderForPlanTab === 'function') {
+      return window.KR.affinityMedia.renderForPlanTab(state);
+    }
 
     if (item.cachePath) {
       const cached = getByPath(state, item.cachePath);
@@ -33474,6 +33918,563 @@ if (document.readyState === 'loading') {
     'background:#1B3A6B;color:#fff;padding:2px 8px;border-radius:4px;font-weight:600',
     '— window.KR.kpiTree ready (north star → supporting → leading)'
   );
+})();
+/* ========================================================================
+   Phase 18: Deep Research Progressive Panel (alpha.36)
+
+   PROBLEM
+   -------
+   Vendor's "Hloubkový průzkum trhu" UI hides ALL competitor result cards
+   behind a single conditional:
+     d = state.competitors.some(c => c.rawResearch && c.rawResearch.length > 100);
+     d && <Fragment>{...all cards...}</Fragment>
+
+   When the first few competitors fail to API rate-limits (rawResearch: ""),
+   d stays false, no cards render, and the user sees only the spinning
+   progress bar with status text — even after several competitors have
+   completed (but had short replies < 100 chars).
+
+   FIX
+   ---
+   Inject a "Průběžné výsledky" panel above vendor's UI that:
+   - Shows EVERY competitor's current status (✓ done, ⏳ pending, ❌ failed, ⏸ rate-limited)
+   - Shows rawResearch preview the moment ANY characters arrive
+   - Updates live as vendor's state changes (polling 800ms)
+   - Doesn't disturb vendor's own UI — additive only
+
+   ARCHITECTURE
+   ------------
+   - Pure phase module, no vendor patches.
+   - MutationObserver detects when user is on Průzkum trhu tab.
+   - When detected, inject panel after vendor's intro card.
+   - Polling reads state.competitors and re-renders panel content.
+   - Detaches cleanly when user navigates elsewhere.
+   ======================================================================== */
+
+(function () {
+  'use strict';
+
+  if (window.KR && window.KR.deepResearchProgress) {
+    console.warn('[KOMPAS] deepResearchProgress already loaded; skipping.');
+    return;
+  }
+
+  const PANEL_ID = 'kr-deep-research-progress';
+  const POLL_MS = 800;
+
+  let _pollHandle = null;
+  let _observerHandle = null;
+  let _lastRenderedSignature = '';
+  let _enabled = false;
+
+  /* ─── Helpers ──────────────────────────────────────────────────────── */
+
+  function escHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function getState() {
+    try {
+      const raw = localStorage.getItem('kompas_v5');
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function isOnResearchTab() {
+    // Vendor's deep research tab has a unique h2: "Hloubkový průzkum trhu"
+    const h2s = document.querySelectorAll('h2');
+    for (const h2 of h2s) {
+      if (h2.textContent.trim() === 'Hloubkový průzkum trhu') return h2;
+    }
+    return null;
+  }
+
+  function isResearchRunning() {
+    // Vendor renders progress card during run. Scan visible div/span text only —
+    // not document.body.textContent (which includes inline <script> source).
+    const titleH2 = isOnResearchTab();
+    if (!titleH2) return false;
+    // Walk only within research tab's container
+    const container = titleH2.closest('div[style*="max-width"]') || titleH2.parentElement?.parentElement;
+    if (!container) return false;
+    const visibleText = container.innerText || '';
+    return /čekám\s*\d+\s*s|hledám data|Pauza\s*\d+s|Retry\s+|Strukturuji|Zpracovávám/i.test(visibleText);
+  }
+
+  /* ─── State analysis ───────────────────────────────────────────────── */
+
+  function getCompetitorStatus(c, isRunning) {
+    if (c.rawResearch && c.rawResearch.length > 50) {
+      // Has substantial content
+      if (c.rawResearch.startsWith('Průzkum nevrátil výsledky')) {
+        return { kind: 'failed', label: 'Selhal', icon: '❌', color: '#dc2626' };
+      }
+      return { kind: 'done', label: `✓ ${c.rawResearch.length} znaků`, icon: '✓', color: '#059669' };
+    }
+    if (c.rawResearch === '') {
+      // Vendor's catch block stored empty string
+      return { kind: 'failed', label: 'Selhal', icon: '❌', color: '#dc2626' };
+    }
+    if (c.rawResearch && c.rawResearch.length > 0) {
+      // Has SOME content but less than 50 chars (partial / short)
+      return { kind: 'partial', label: `Krátká odpověď (${c.rawResearch.length} znaků)`, icon: '⚠', color: '#d97706' };
+    }
+    // No rawResearch field yet
+    return isRunning
+      ? { kind: 'pending', label: 'Ve frontě', icon: '⏳', color: '#6b7280' }
+      : { kind: 'notrun', label: 'Neprozkoumán', icon: '○', color: '#9ca3af' };
+  }
+
+  /* ─── Render ───────────────────────────────────────────────────────── */
+
+  function buildPanelHtml(state) {
+    const competitors = (state && Array.isArray(state.competitors)) ? state.competitors : [];
+    if (competitors.length === 0) return '';
+
+    const running = isResearchRunning();
+    const statuses = competitors.map(c => ({ c, s: getCompetitorStatus(c, running) }));
+    const doneCount = statuses.filter(x => x.s.kind === 'done').length;
+    const failedCount = statuses.filter(x => x.s.kind === 'failed').length;
+    const partialCount = statuses.filter(x => x.s.kind === 'partial').length;
+
+    // Don't render if NO competitor has been touched yet (no rawResearch field present anywhere)
+    // This means user hasn't clicked "Spustit průzkum" yet
+    const anyTouched = competitors.some(c => c.rawResearch !== undefined);
+    if (!anyTouched && !running) {
+      return '';
+    }
+
+    const headerBg = 'linear-gradient(135deg, #f5f3ff, #eef0ff)';
+    const cardStyle = 'background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 14px; margin-bottom: 8px;';
+
+    const cards = statuses.map(({ c, s }) => {
+      const preview = c.rawResearch && c.rawResearch.length > 0 && s.kind !== 'failed'
+        ? `<div style="margin-top: 8px; padding: 8px 10px; background: #f9fafb; border-radius: 6px; font-size: 11px; color: #4b5563; line-height: 1.5; max-height: 80px; overflow: hidden;">${escHtml(c.rawResearch.slice(0, 280))}${c.rawResearch.length > 280 ? '…' : ''}</div>`
+        : '';
+
+      return (
+        '<div style="' + cardStyle + 'border-left: 3px solid ' + s.color + ';">' +
+          '<div style="display: flex; justify-content: space-between; align-items: center;">' +
+            '<div style="font-size: 13px; font-weight: 700; color: #1a1a2e;">' + escHtml(c.name) + '</div>' +
+            '<span style="font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 100px; background: ' + s.color + '15; color: ' + s.color + ';">' +
+              s.icon + ' ' + escHtml(s.label) +
+            '</span>' +
+          '</div>' +
+          preview +
+        '</div>'
+      );
+    }).join('');
+
+    return (
+      '<div id="' + PANEL_ID + '" style="margin: 0 0 16px; padding: 14px 18px; background: ' + headerBg + '; ' +
+        'border: 1px solid #c4b5fd44; border-radius: 10px;">' +
+        '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">' +
+          '<div style="display: flex; align-items: center; gap: 8px;">' +
+            '<span style="font-size: 16px;">📊</span>' +
+            '<span style="font-size: 14px; font-weight: 700; color: #1a1a2e;">Průběžné výsledky</span>' +
+          '</div>' +
+          '<div style="display: flex; gap: 6px;">' +
+            '<span style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 100px; background: #05966915; color: #059669;">✓ ' + doneCount + '</span>' +
+            (partialCount > 0 ? '<span style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 100px; background: #d9770615; color: #d97706;">⚠ ' + partialCount + '</span>' : '') +
+            (failedCount > 0 ? '<span style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 100px; background: #dc262615; color: #dc2626;">❌ ' + failedCount + '</span>' : '') +
+            '<span style="font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 100px; background: #e5e7eb; color: #6b7280;">' + competitors.length + ' celkem</span>' +
+          '</div>' +
+        '</div>' +
+        '<div style="max-height: 480px; overflow-y: auto;">' + cards + '</div>' +
+      '</div>'
+    );
+  }
+
+  function computeSignature(state) {
+    const competitors = (state && Array.isArray(state.competitors)) ? state.competitors : [];
+    return competitors.map(c => {
+      const len = (c.rawResearch || '').length;
+      return c.id + ':' + len;
+    }).join('|') + '|running:' + isResearchRunning();
+  }
+
+  function renderPanel() {
+    const titleH2 = isOnResearchTab();
+    if (!titleH2) {
+      // Not on research tab — remove panel if exists
+      const existing = document.getElementById(PANEL_ID);
+      if (existing) existing.remove();
+      _lastRenderedSignature = '';
+      return;
+    }
+
+    const state = getState();
+    const sig = computeSignature(state);
+    if (sig === _lastRenderedSignature) return; // no change
+    _lastRenderedSignature = sig;
+
+    const html = buildPanelHtml(state);
+    const existing = document.getElementById(PANEL_ID);
+
+    if (!html) {
+      if (existing) existing.remove();
+      return;
+    }
+
+    if (existing) {
+      // Update in place
+      existing.outerHTML = html;
+      return;
+    }
+
+    // Inject panel: find vendor's intro card (the gradient "Z odhadů na reálná data" box)
+    // and place our panel right after it. If not found, place after the h2 title.
+    const introCard = (function findIntro() {
+      const candidates = titleH2.parentElement?.parentElement?.querySelectorAll('div') || [];
+      for (const c of candidates) {
+        if (c.textContent.includes('Z odhadů na reálná data')) {
+          // Walk up to the card container
+          let n = c;
+          for (let i = 0; i < 6 && n; i++) {
+            if (n.style && n.style.background && n.style.background.includes('rgb')) return n;
+            n = n.parentElement;
+          }
+          return c;
+        }
+      }
+      return null;
+    })();
+
+    const wrap = document.createElement('div');
+    wrap.innerHTML = html;
+    const panel = wrap.firstElementChild;
+
+    if (introCard && introCard.parentElement) {
+      introCard.parentElement.insertBefore(panel, introCard.nextSibling);
+    } else {
+      // Fallback: place after h2 title's parent container
+      titleH2.parentElement?.parentElement?.appendChild(panel);
+    }
+  }
+
+  /* ─── Lifecycle ────────────────────────────────────────────────────── */
+
+  function start() {
+    if (_enabled) return;
+    _enabled = true;
+
+    // Polling render — cheap (only reads localStorage + scans DOM for h2)
+    _pollHandle = setInterval(renderPanel, POLL_MS);
+
+    // Also re-render on any DOM mutation (catches tab switches faster)
+    _observerHandle = new MutationObserver(function () {
+      // Debounce via requestAnimationFrame
+      if (window._krDrpRaf) cancelAnimationFrame(window._krDrpRaf);
+      window._krDrpRaf = requestAnimationFrame(renderPanel);
+    });
+    _observerHandle.observe(document.body, { childList: true, subtree: true });
+
+    // First render attempt
+    setTimeout(renderPanel, 300);
+  }
+
+  function stop() {
+    if (_pollHandle) { clearInterval(_pollHandle); _pollHandle = null; }
+    if (_observerHandle) { _observerHandle.disconnect(); _observerHandle = null; }
+    const existing = document.getElementById(PANEL_ID);
+    if (existing) existing.remove();
+    _enabled = false;
+  }
+
+  /* ─── Public API ───────────────────────────────────────────────────── */
+
+  window.KR = window.KR || {};
+  window.KR.deepResearchProgress = {
+    start: start,
+    stop: stop,
+    renderNow: renderPanel,
+    _PANEL_ID: PANEL_ID
+  };
+
+  // Auto-start
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start);
+  } else {
+    setTimeout(start, 200);
+  }
+
+  console.info('[KOMPAS] Phase 18: deep research progressive panel loaded.');
+})();
+/* ========================================================================
+   Phase 19: Affinity Media (B19) — Top 30 alternative media table (alpha.37)
+
+   PURPOSE
+   -------
+   Adds a new B19 section that complements B18 Channel Strategy:
+   - B18 = Recommended primary channels (top 5-12 with budget allocation)
+   - B19 = Top 30 alternative media by audience affinity (broader landscape)
+
+   Use case: client wants to know all viable channels their target audience
+   spends time on, not just the recommended primary mix.
+
+   COLUMNS
+   -------
+   1. # (rank)
+   2. Channel name
+   3. Affinity score (0-100, color-coded)
+   4. Estimated reach (monthly visits/views or audience size)
+   5. Why (target audience match reasoning)
+
+   DATA SOURCE
+   -----------
+   state.mediaRecs[] — output of mediaEngine.js (vendor's "Kde inzerovat" tab).
+   Sorted by affinity desc, takes top 30.
+
+   RENDERS
+   -------
+   - Plan tab: panel card via window.KR.affinityMedia.renderForPlanTab()
+   - PDF master: pageWrap section via window.KR.affinityMedia.buildPdfHtml()
+   - DocumentPlan: registered as section B19 (slot between B18 and B20)
+   ======================================================================== */
+
+(function () {
+  'use strict';
+
+  if (window.KR && window.KR.affinityMedia) {
+    console.warn('[KOMPAS] affinityMedia already loaded; skipping.');
+    return;
+  }
+
+  const TOP_N = 30;
+
+  /* ─── Helpers ──────────────────────────────────────────────────────── */
+
+  function escHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function affinityColor(score) {
+    if (score >= 80) return '#059669';
+    if (score >= 60) return '#d97706';
+    if (score >= 40) return '#0ea5e9';
+    return '#8888a0';
+  }
+
+  function fmtReach(rec) {
+    // Try several possible field names; mediaEngine output varies
+    const val = rec.reach || rec.monthlyReach || rec.monthlyVisits ||
+                rec.audienceSize || rec.totalReach;
+    if (val == null) return '—';
+    if (typeof val === 'number') {
+      if (val >= 1000000) return (val / 1000000).toFixed(1) + 'M';
+      if (val >= 1000) return Math.round(val / 1000) + 'K';
+      return String(val);
+    }
+    return String(val);
+  }
+
+  function getAffinity(rec) {
+    return rec.affinity || rec.score || 0;
+  }
+
+  function getChannelName(rec) {
+    return rec.channel || rec.name || '?';
+  }
+
+  function getWhy(rec) {
+    // Prefer explicit reasoning, fallback to audience description
+    return rec.reasoning || rec.why || rec.rationale ||
+           rec.audience || rec.targetAudience || rec.affinityReason ||
+           '—';
+  }
+
+  function getCategory(rec) {
+    return rec.category || rec.type || rec.medium || null;
+  }
+
+  /* ─── Core: sort + slice top N ─────────────────────────────────────── */
+
+  function getTopChannels(state, n) {
+    const recs = (state && Array.isArray(state.mediaRecs)) ? state.mediaRecs : [];
+    if (recs.length === 0) return [];
+    n = n || TOP_N;
+    return [...recs]
+      .sort((a, b) => getAffinity(b) - getAffinity(a))
+      .slice(0, n);
+  }
+
+  /* ─── Plan tab render ──────────────────────────────────────────────── */
+
+  function renderForPlanTab(state) {
+    const top = getTopChannels(state);
+    if (top.length === 0) {
+      return (
+        '<div style="padding:14px 18px;background:#f9fafb;border:1px dashed #d1d5db;border-radius:10px;font-size:12px;color:#6b7280;">' +
+          '⚠ <strong>Media mix nevygenerován.</strong> Přejděte na záložku <em>Kde inzerovat</em> a spusťte AI mediální doporučení, ' +
+          'aby se zde zobrazilo top 30 alternativních kanálů s vysokou affinity.' +
+        '</div>'
+      );
+    }
+
+    return (
+      '<div style="background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:18px 20px;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">' +
+          '<div>' +
+            '<div style="font-size:14px;font-weight:700;color:#1a1a2e;">📡 Alternativní média (B19)</div>' +
+            '<div style="font-size:11px;color:#6b7280;margin-top:2px;">' +
+              'Top ' + top.length + ' kanálů kde tvá target audience reálně tráví čas. Doplněk k Channel Strategy.' +
+            '</div>' +
+          '</div>' +
+          '<span style="font-size:10px;font-weight:600;padding:3px 10px;border-radius:100px;background:#05966915;color:#059669;">' +
+            (state.mediaRecs || []).length + ' celkem' +
+          '</span>' +
+        '</div>' +
+
+        '<div style="max-height:520px;overflow-y:auto;border:1px solid #f3f4f6;border-radius:8px;">' +
+          '<table style="width:100%;border-collapse:collapse;font-size:11.5px;">' +
+            '<thead style="position:sticky;top:0;background:#f8f7f4;">' +
+              '<tr style="border-bottom:2px solid #e5e3df;">' +
+                '<th style="text-align:left;padding:8px 10px;font-size:9px;font-weight:700;color:#8888a0;letter-spacing:0.06em;text-transform:uppercase;width:30px;">#</th>' +
+                '<th style="text-align:left;padding:8px 10px;font-size:9px;font-weight:700;color:#8888a0;letter-spacing:0.06em;text-transform:uppercase;">Kanál</th>' +
+                '<th style="text-align:center;padding:8px 10px;font-size:9px;font-weight:700;color:#8888a0;letter-spacing:0.06em;text-transform:uppercase;width:75px;">Affinity</th>' +
+                '<th style="text-align:center;padding:8px 10px;font-size:9px;font-weight:700;color:#8888a0;letter-spacing:0.06em;text-transform:uppercase;width:90px;">Reach</th>' +
+                '<th style="text-align:left;padding:8px 10px;font-size:9px;font-weight:700;color:#8888a0;letter-spacing:0.06em;text-transform:uppercase;">Proč</th>' +
+              '</tr>' +
+            '</thead>' +
+            '<tbody>' +
+              top.map((r, i) => {
+                const aff = getAffinity(r);
+                const color = affinityColor(aff);
+                const cat = getCategory(r);
+                return (
+                  '<tr style="border-bottom:1px solid #f0eeeb;">' +
+                    '<td style="padding:8px 10px;color:#8888a0;font-weight:600;vertical-align:top;">' + (i + 1) + '</td>' +
+                    '<td style="padding:8px 10px;vertical-align:top;">' +
+                      '<div style="font-weight:700;color:#1a1a2e;">' + escHtml(getChannelName(r)) + '</div>' +
+                      (cat ? '<div style="font-size:9px;color:#8888a0;margin-top:2px;">' + escHtml(cat) + '</div>' : '') +
+                    '</td>' +
+                    '<td style="text-align:center;padding:8px 10px;vertical-align:top;">' +
+                      '<span style="display:inline-block;padding:2px 8px;background:' + color + '15;color:' + color + ';border-radius:100px;font-size:11px;font-weight:700;">' +
+                        aff +
+                      '</span>' +
+                    '</td>' +
+                    '<td style="text-align:center;padding:8px 10px;color:#3d3d56;font-weight:600;vertical-align:top;">' + fmtReach(r) + '</td>' +
+                    '<td style="padding:8px 10px;color:#3d3d56;font-size:11px;vertical-align:top;line-height:1.5;">' + escHtml(getWhy(r)) + '</td>' +
+                  '</tr>'
+                );
+              }).join('') +
+            '</tbody>' +
+          '</table>' +
+        '</div>' +
+      '</div>'
+    );
+  }
+
+  /* ─── PDF master section render ────────────────────────────────────── */
+
+  function buildPdfHtml(state) {
+    const top = getTopChannels(state);
+    if (top.length === 0) {
+      // Placeholder — section heading + "needs media mix" text
+      return (
+        '<div class="page" style="padding:50px 60px;page-break-after:always;">' +
+          '<div style="font-family:Trebuchet MS,sans-serif;font-size:9px;font-weight:700;color:#7c3aed;letter-spacing:0.18em;text-transform:uppercase;margin-bottom:8px;">Strategy Layer · 19</div>' +
+          '<h2 style="font-size:24px;font-weight:700;color:#1a1a2e;margin:0 0 8px;letter-spacing:-0.02em;">Alternativní média s vysokou affinity</h2>' +
+          '<p style="font-family:Calibri,sans-serif;font-size:13px;color:#6b7280;margin:0 0 30px;max-width:600px;">Doplněk k Channel Strategy — širší krajina médií kde target audience tráví čas.</p>' +
+          '<div style="padding:20px 24px;background:#fef3c7;border:1px solid #f59e0b44;border-radius:10px;font-size:12px;color:#92400e;">' +
+            '⚠ <strong>Needs media mix.</strong> Média nejsou vygenerována. V aplikaci na záložce <em>Kde inzerovat</em> spusťte AI mediální doporučení (5-10 min), aby se zde zobrazilo top 30 affinity kanálů.' +
+          '</div>' +
+        '</div>'
+      );
+    }
+
+    return (
+      '<div class="page" style="padding:50px 60px;page-break-after:always;">' +
+        '<div style="font-family:Trebuchet MS,sans-serif;font-size:9px;font-weight:700;color:#7c3aed;letter-spacing:0.18em;text-transform:uppercase;margin-bottom:8px;">Strategy Layer · 19</div>' +
+        '<h2 style="font-size:24px;font-weight:700;color:#1a1a2e;margin:0 0 8px;letter-spacing:-0.02em;">Alternativní média s vysokou affinity</h2>' +
+        '<p style="font-family:Calibri,sans-serif;font-size:13px;color:#6b7280;margin:0 0 20px;max-width:600px;">' +
+          'Top ' + top.length + ' kanálů kde target audience reálně tráví čas. Doplněk k Channel Strategy — možnosti pro testování, expanzi a long-tail reach.' +
+        '</p>' +
+
+        '<div style="margin-bottom:14px;padding:10px 14px;background:#f0fdf4;border:1px solid #bbf7d0;border-left:4px solid #059669;border-radius:0 8px 8px 0;font-size:11px;color:#3d3d56;line-height:1.6;">' +
+          '<strong style="color:#065f46;">Affinity score</strong> kombinuje audience match (věk, gender, SES, zájmy), reach efficiency a brand fit. ' +
+          'Vychází z KOMPAS Media Engine — ' + (state.mediaRecs || []).length + ' kanálů scórovaných proti tvému target audience.' +
+        '</div>' +
+
+        '<table style="width:100%;border-collapse:collapse;font-size:10.5px;">' +
+          '<thead><tr style="background:#f8f7f4;border-bottom:2px solid #e5e3df;">' +
+            '<th style="text-align:left;padding:8px 8px;font-size:9px;font-weight:700;color:#8888a0;letter-spacing:0.06em;text-transform:uppercase;width:26px;">#</th>' +
+            '<th style="text-align:left;padding:8px 8px;font-size:9px;font-weight:700;color:#8888a0;letter-spacing:0.06em;text-transform:uppercase;">Kanál</th>' +
+            '<th style="text-align:center;padding:8px 8px;font-size:9px;font-weight:700;color:#8888a0;letter-spacing:0.06em;text-transform:uppercase;width:65px;">Affinity</th>' +
+            '<th style="text-align:center;padding:8px 8px;font-size:9px;font-weight:700;color:#8888a0;letter-spacing:0.06em;text-transform:uppercase;width:75px;">Reach</th>' +
+            '<th style="text-align:left;padding:8px 8px;font-size:9px;font-weight:700;color:#8888a0;letter-spacing:0.06em;text-transform:uppercase;">Proč</th>' +
+          '</tr></thead>' +
+          '<tbody>' +
+            top.map((r, i) => {
+              const aff = getAffinity(r);
+              const color = affinityColor(aff);
+              const cat = getCategory(r);
+              return (
+                '<tr style="border-bottom:1px solid #f0eeeb;page-break-inside:avoid;">' +
+                  '<td style="padding:7px 8px;color:#8888a0;font-weight:600;vertical-align:top;">' + (i + 1) + '</td>' +
+                  '<td style="padding:7px 8px;vertical-align:top;">' +
+                    '<div style="font-weight:700;color:#1a1a2e;font-size:11px;">' + escHtml(getChannelName(r)) + '</div>' +
+                    (cat ? '<div style="font-size:9px;color:#8888a0;margin-top:1px;">' + escHtml(cat) + '</div>' : '') +
+                  '</td>' +
+                  '<td style="text-align:center;padding:7px 8px;vertical-align:top;">' +
+                    '<span style="display:inline-block;padding:2px 7px;background:' + color + '15;color:' + color + ';border-radius:100px;font-size:10px;font-weight:700;">' + aff + '</span>' +
+                  '</td>' +
+                  '<td style="text-align:center;padding:7px 8px;color:#3d3d56;font-weight:600;vertical-align:top;font-size:10px;">' + fmtReach(r) + '</td>' +
+                  '<td style="padding:7px 8px;color:#3d3d56;font-size:10px;vertical-align:top;line-height:1.5;">' + escHtml(getWhy(r)) + '</td>' +
+                '</tr>'
+              );
+            }).join('') +
+          '</tbody>' +
+        '</table>' +
+
+        '<div style="margin-top:16px;padding:10px 14px;background:#f8f7f4;border-radius:8px;font-size:10px;color:#6b7280;line-height:1.5;">' +
+          '<strong>Jak to číst:</strong> Affinity 80+ = silný match (top priority pro test). 60-79 = solidní match (rozšiřuje reach). 40-59 = experimentální (test s malým rozpočtem). Reach je odhad měsíčního dosahu (návštěvy/imprese/listenership podle typu).' +
+        '</div>' +
+      '</div>'
+    );
+  }
+
+  /* ─── DocumentPlan registration ────────────────────────────────────── */
+
+  function getSectionMeta(state) {
+    const top = getTopChannels(state);
+    const hasData = top.length > 0;
+    const recsCount = (state && state.mediaRecs) ? state.mediaRecs.length : 0;
+
+    return {
+      id: 'affinityMedia',
+      number: 'B19',
+      title: 'Alternativní média (B19)',
+      layer: 'Strategy',
+      kind: 'Layer 1',
+      status: hasData ? 'ready' : 'missing',
+      statusLabel: hasData ? `${Math.min(recsCount, TOP_N)} kanálů` : 'Needs media mix',
+      description: 'Top 30 affinity kanálů z mediaEngine — doplněk k Channel Strategy.',
+      hint: hasData
+        ? null
+        : 'Spusťte AI mediální doporučení v záložce "Kde inzerovat" → pak se zde zobrazí Top 30.',
+      canGenerate: false  // is computed, not AI-generated
+    };
+  }
+
+  /* ─── Public API ───────────────────────────────────────────────────── */
+
+  window.KR = window.KR || {};
+  window.KR.affinityMedia = {
+    TOP_N: TOP_N,
+    getTopChannels: getTopChannels,
+    renderForPlanTab: renderForPlanTab,
+    buildPdfHtml: buildPdfHtml,
+    getSectionMeta: getSectionMeta
+  };
+
+  console.info('[KOMPAS] Phase 19: Affinity Media (B19) loaded.');
 })();
 </script>
 </body></html>
