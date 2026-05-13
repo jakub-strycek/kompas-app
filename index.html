@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- KOMPAS™ build v7.0.0-alpha.56 (2026-05-13) — Path C source tree (v7-source). See LAYERS.md / FEATURES.md for architecture. -->
+<!-- KOMPAS™ build v7.0.0-alpha.62 (2026-05-13) — Path C source tree (v7-source). See LAYERS.md / FEATURES.md for architecture. -->
 <!-- KOMPAS v6.9.8: Data flow audit + enrichment. 1) Agresivní varianta rozšířena z 5 gap TITULŮ na plný kontext (brief, SWOT, segmenty, konkurenti, mezery, důkazy, mediální mix, reference k hlavní strategii) — není to už datově hladová kopie, ale plnohodnotná kontra-strategie. 2) briefAn (SWOT z úvodní analýzy briefu) nově vstupuje do yi.strategy jako samostatná sekce, plus instrukce v system-role aby AI explicitně vázala doporučení na silné/slabé stránky, příležitosti, rizika. 3) Media prompt (yi.media) rozšířen o demandPools, evidence a positioning — kanály se teď doporučují s vědomím segmentů, tónu značky a tržních důkazů. 4) Positioning framework prompt rozšířen o naše analyzované konkurenty, top mezery a segmenty — white space se identifikuje na základě REÁLNÉ competitive intel, ne jen archetypu. Žádné AI volání nebylo zjednodušeno — všechny předchozí datové vazby zachovány. -->
-<html lang="cs"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>KOMPAS™ v7.0.0-alpha.56 — Competitive Growth Operating System</title><script>
+<html lang="cs"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>KOMPAS™ v7.0.0-alpha.62 — Competitive Growth Operating System</title><script>
 /* KOMPAS console shim — runs before everything. Some preview/sandbox
    environments lack console.info/warn/error/debug; vendor's bundle and
    our phases call these at module load, throwing TypeError that breaks
@@ -22920,6 +22920,11 @@ if (document.readyState === 'loading') {
   // calling clearAll. Without the marker, we always preserve.
   let _allowFullClear = false;
 
+  /* ─── Save original Storage methods early (used in helpers below) ─── */
+  const origSetItem = Storage.prototype.setItem;
+  const origGetItem = Storage.prototype.getItem;
+  const origRemoveItem = Storage.prototype.removeItem;
+
   /* ─── Helpers ─────────────────────────────────────────────────────── */
   function isObject(x) {
     return x != null && typeof x === 'object' && !Array.isArray(x);
@@ -22935,6 +22940,48 @@ if (document.readyState === 'loading') {
   }
 
   /**
+   * Detect "vendor reset" — user clicked the Reset button in Kde teď jste tab.
+   * Vendor's reducer returns ru() = { strategy: null, competitors: [], evidence: [],
+   * gaps: [], demandPools: [], mediaRecs: [], brief: empty, positioning: empty, ... }
+   * When ALL of these are simultaneously empty/null, it's a deliberate reset and
+   * we must NOT preserve extension fields (which would re-populate Plán tab
+   * with stale Content/PR/Creative sections from previous client).
+   */
+  function isVendorReset(incoming) {
+    if (!isObject(incoming)) return false;
+    const strategyEmpty = incoming.strategy === null ||
+      (isObject(incoming.strategy) && Object.keys(incoming.strategy).length === 0);
+    const competitorsEmpty = Array.isArray(incoming.competitors) && incoming.competitors.length === 0;
+    const evidenceEmpty = Array.isArray(incoming.evidence) && incoming.evidence.length === 0;
+    const gapsEmpty = Array.isArray(incoming.gaps) && incoming.gaps.length === 0;
+    const briefEmpty = !incoming.brief || !incoming.brief.clientName ||
+      incoming.brief.clientName === '';
+    return strategyEmpty && competitorsEmpty && evidenceEmpty && gapsEmpty && briefEmpty;
+  }
+
+  /**
+   * Detect "client switch" — user changed brief.clientName to a different
+   * non-empty value (e.g. BILLA → Addvery s.r.o.) without going through
+   * the explicit Reset flow.
+   *
+   * In this case, strategy.decisionLayer / consultantSections / consultantPack
+   * / battlecards / kpiTree were generated for the OLD client and would
+   * appear stale (e.g. "Schválit posun BILLA z generického supermarketu"
+   * shown in a doc claiming to be for Addvery s.r.o.).
+   *
+   * We clear those extension fields but keep brief, competitors, evidence,
+   * gaps — user may want to reuse those for the new client.
+   */
+  function isClientSwitch(incoming, existing) {
+    if (!isObject(incoming) || !isObject(existing)) return false;
+    const oldName = (existing.brief && existing.brief.clientName) || '';
+    const newName = (incoming.brief && incoming.brief.clientName) || '';
+    // Both must be non-empty AND different (a real switch, not initial fill)
+    return oldName.length > 0 && newName.length > 0 &&
+           oldName.trim().toLowerCase() !== newName.trim().toLowerCase();
+  }
+
+  /**
    * Merge `incoming` (about to be written by vendor) with `existing`
    * (already in localStorage), preserving extension fields from existing
    * when they are absent in incoming.
@@ -22942,6 +22989,64 @@ if (document.readyState === 'loading') {
   function mergeProtected(incoming, existing) {
     if (!isObject(existing)) return incoming;
     if (!isObject(incoming)) return incoming;
+
+    // RESET DETECTION: if vendor wrote a fully-empty state (user clicked Reset),
+    // return incoming as-is without preserving any extension fields.
+    if (isVendorReset(incoming)) {
+      console.log('[KOMPAS storage-protection] Reset detected — clearing all extension fields');
+      // ALSO clear ALL project-scoped data in OTHER localStorage keys.
+      // The vendor's Reset only touches kompas_v5 — but BILLA residuals can
+      // hide in research outputs, research state, QA ignored issues, and
+      // SimilarWeb cache. We must clear those too so the new client starts
+      // truly fresh.
+      //
+      // What we DO NOT clear (agency-level, not project-specific):
+      //   - kompas_research_config  (Firecrawl/Apify/Tavily API keys —
+      //     belong to the agency, not the project)
+      //   - kompas_briefs_v1        (KB briefs database — collection of
+      //     past briefs, not residual data from active client)
+      const PROJECT_KEYS_TO_CLEAR = [
+        'kompas_research_outputs',   // Layer 2 outputs: Strategy v2, Execution Plan, Bold Move, Audience Versions
+        'kompas_research_state',     // Active project + session
+        'kompas_qa_ignored',         // QA gate ignored issues
+        'kompas_similarweb_cache'    // Per-domain traffic data
+      ];
+      PROJECT_KEYS_TO_CLEAR.forEach(function (k) {
+        try {
+          if (origGetItem.call(localStorage, k) !== null) {
+            origRemoveItem.call(localStorage, k);
+          }
+        } catch (e) { /* swallow */ }
+      });
+      return incoming;
+    }
+
+    // CLIENT SWITCH DETECTION: user changed brief.clientName to a different
+    // non-empty value (e.g. BILLA → Addvery s.r.o.). Strategy was generated
+    // for the old client and is entirely stale — every field (thesis, boldMove,
+    // roadmap, decisionLayer, consultantSections, ...) embeds the old client
+    // name in its narrative text.
+    if (isClientSwitch(incoming, existing)) {
+      console.log('[KOMPAS storage-protection] Client switch detected — clearing entire strategy + research outputs',
+        '(', existing.brief.clientName, '→', incoming.brief.clientName, ')');
+      // Nuke strategy entirely. User keeps brief (filled for new client),
+      // competitors, evidence, gaps, demandPools, positioning, mediaRecs,
+      // apiKey — those they may want to re-use. Strategy is generated content
+      // and needs to be regenerated for the new client.
+      const cleaned = Object.assign({}, incoming);
+      cleaned.strategy = null;
+      // Remove root-level Decision Layer fields (alpha.28 path patch)
+      delete cleaned.executiveDecisionPage;
+      delete cleaned.growthThesis;
+      delete cleaned.mustWinBattles;
+      // Clear research outputs (Layer 2 generated for old client)
+      try {
+        if (origGetItem.call(localStorage, 'kompas_research_outputs') !== null) {
+          origRemoveItem.call(localStorage, 'kompas_research_outputs');
+        }
+      } catch (e) { /* swallow */ }
+      return cleaned;
+    }
 
     const merged = Object.assign({}, incoming);
 
@@ -22986,9 +23091,6 @@ if (document.readyState === 'loading') {
     return;
   }
   window._krStorageProtectionInstalled = true;
-
-  const origSetItem = Storage.prototype.setItem;
-  const origGetItem = Storage.prototype.getItem;
 
   Storage.prototype.setItem = function (key, value) {
     // Pass-through for non-kompas keys
@@ -32876,6 +32978,81 @@ if (document.readyState === 'loading') {
     '</div>';
   }
 
+  function getCriticalActionFor(issue) {
+    // Return { label, action } for the issue, or null if no specific action.
+    // 'action' is the data-rr-fix attribute value; wireActions binds handlers.
+    if (!issue || !issue.id) return null;
+    switch (issue.id) {
+      case 'fact-without-source':
+      case 'unvalidated-fact-no-source':
+        return { label: 'Otevřít Důkazy z trhu →', action: 'goto-evidence' };
+      case 'empty-section':
+        return { label: 'Otevřít Plán →', action: 'goto-plan' };
+      case 'missing-management-ask':
+        return { label: 'Vygenerovat Management Ask →', action: 'gen-management-ask' };
+      case 'missing-risks':
+        return { label: 'Vygenerovat Risks & Guardrails →', action: 'gen-risks' };
+      case 'prohibited-phrase':
+        return { label: 'Otevřít Plán k úpravě →', action: 'goto-plan' };
+      default:
+        return null;
+    }
+  }
+
+  function renderCriticalIssues(r) {
+    // Inline list of QA critical issues — so user sees WHICH errors block export
+    // without having to open the Detail QA modal. Each item shows the message,
+    // suggested fix, and an actionable button to resolve it.
+    if (!r.qa || !r.qa.issues) return '';
+    const critical = r.qa.issues.filter(function (i) { return i.severity === 'critical'; });
+    if (critical.length === 0) return '';
+
+    return '<div style="' +
+        'padding:14px 16px;background:#fef2f2;border-left:4px solid #dc2626;' +
+        'border-radius:6px;margin-bottom:14px">' +
+      '<div style="font-size:12px;font-weight:700;color:#991b1b;margin-bottom:8px;' +
+          'display:flex;align-items:center;justify-content:space-between">' +
+        '<span>⛔ ' + critical.length + ' kritická(é) chyba(y) blokuje export</span>' +
+        '<button id="kr-rr-open-detail-from-critical" type="button" style="' +
+            'padding:4px 10px;background:transparent;border:1px solid #fca5a5;' +
+            'color:#991b1b;border-radius:5px;font-size:11px;font-weight:600;' +
+            'cursor:pointer">Otevřít Detail QA →</button>' +
+      '</div>' +
+      '<div style="display:flex;flex-direction:column;gap:8px">' +
+        critical.map(function (issue, idx) {
+          const action = getCriticalActionFor(issue);
+          return '<div style="padding:10px 12px;background:#fff;border:1px solid #fecaca;border-radius:6px">' +
+              '<div style="display:flex;align-items:flex-start;gap:10px">' +
+                '<div style="flex:1;min-width:0">' +
+                  '<div style="font-size:12.5px;font-weight:600;color:#7f1d1d;margin-bottom:4px">' +
+                    escHtml(issue.message) +
+                  '</div>' +
+                  (issue.suggestedFix ?
+                    '<div style="font-size:11.5px;color:#991b1b;line-height:1.5">→ ' +
+                      escHtml(issue.suggestedFix) +
+                    '</div>' : '') +
+                  (issue.excerpt ?
+                    '<div style="font-size:10.5px;color:#9ca3af;margin-top:4px;font-style:italic">' +
+                      '… ' + escHtml(issue.excerpt.slice(0, 120)) + ' …' +
+                    '</div>' : '') +
+                '</div>' +
+                (action ?
+                  '<button class="kr-rr-fix-critical" data-rr-fix="' + escHtml(action.action) + '" ' +
+                      'data-issue-id="' + escHtml(issue.id) + '" ' +
+                      (issue.excerpt ? 'data-issue-excerpt="' + escHtml(issue.excerpt.slice(0, 80)) + '" ' : '') +
+                      'type="button" style="' +
+                      'flex-shrink:0;padding:8px 12px;background:#dc2626;color:#fff;' +
+                      'border:none;border-radius:6px;font-size:11.5px;font-weight:600;' +
+                      'cursor:pointer;white-space:nowrap;align-self:flex-start">' +
+                    escHtml(action.label) +
+                  '</button>' : '') +
+              '</div>' +
+            '</div>';
+        }).join('') +
+      '</div>' +
+    '</div>';
+  }
+
   function renderCriticalMissing(r) {
     if (r.criticalMissing.length === 0) return '';
 
@@ -33106,18 +33283,95 @@ if (document.readyState === 'loading') {
       });
     }
 
-    // Detail QA modal — uses existing exportPreview
+    // Detail QA modal — uses existing exportPreview.
+    // Important: we must pass a FRESH qaGate.run() result computed from
+    // current state. Calling show() with no args would summarize undefined,
+    // and any cached qaResult elsewhere could carry stale data from a
+    // previous client (e.g. BILLA after switching to new client).
+    function openDetailQA() {
+      if (window.KR.exportPreview && typeof window.KR.exportPreview.show === 'function') {
+        try {
+          const currentState = (window.KR.appState && window.KR.appState.getKompas()) || {};
+          const freshQaResult = (window.KR.qaGate && typeof window.KR.qaGate.run === 'function')
+            ? window.KR.qaGate.run(currentState)
+            : null;
+          window.KR.exportPreview.show(freshQaResult);
+        } catch (e) {
+          console.error('[reportReadiness] Detail QA failed:', e);
+          alert('Detail QA modal selhalo: ' + e.message);
+        }
+      } else {
+        alert('Detail QA modal není k dispozici.');
+      }
+    }
     const detailBtn = wrapper.querySelector('#kr-rr-detail');
-    if (detailBtn) {
-      detailBtn.addEventListener('click', () => {
-        if (window.KR.exportPreview && typeof window.KR.exportPreview.show === 'function') {
-          window.KR.exportPreview.show();
-        } else {
-          alert('Detail QA modal není k dispozici.');
+    if (detailBtn) detailBtn.addEventListener('click', openDetailQA);
+    // Inline critical-issues "Otevřít Detail QA →" button
+    const inlineDetailBtn = wrapper.querySelector('#kr-rr-open-detail-from-critical');
+    if (inlineDetailBtn) inlineDetailBtn.addEventListener('click', openDetailQA);
+
+    // Wire per-issue fix buttons in the critical-issues block
+    wrapper.querySelectorAll('.kr-rr-fix-critical').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        const action = btn.getAttribute('data-rr-fix');
+        try {
+          switch (action) {
+            case 'goto-evidence':
+              navigateToTab('Důkazy z trhu');
+              break;
+            case 'goto-plan':
+              navigateToTab('Váš plán');
+              break;
+            case 'gen-management-ask':
+              triggerConsultantPackGen('managementAsk', btn);
+              break;
+            case 'gen-risks':
+              triggerConsultantPackGen('risks', btn);
+              break;
+            default:
+              console.warn('[reportReadiness] Unknown fix action:', action);
+          }
+        } catch (e) {
+          console.error('[reportReadiness] Fix action failed:', e);
+          alert('Akce selhala: ' + e.message);
         }
       });
+    });
+
+    function navigateToTab(tabLabel) {
+      const navButtons = document.querySelectorAll('nav button');
+      for (let i = 0; i < navButtons.length; i++) {
+        if (navButtons[i].textContent.trim() === tabLabel) {
+          navButtons[i].click();
+          return true;
+        }
+      }
+      console.warn('[reportReadiness] Tab not found:', tabLabel);
+      return false;
     }
 
+    function triggerConsultantPackGen(key, btn) {
+      if (!window.KR.consultantPack || typeof window.KR.consultantPack.generateOne !== 'function') {
+        alert('Generátor zatím není k dispozici. Otevřete Plán tab a vygenerujte ručně.');
+        navigateToTab('Váš plán');
+        return;
+      }
+      const origLabel = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '⏳ Generuji…';
+      const currentState = (window.KR.appState && window.KR.appState.getKompas()) || {};
+      window.KR.consultantPack.generateOne(currentState, key, {
+        onProgress: function (msg) { btn.innerHTML = '⏳ ' + msg.slice(0, 30); }
+      }).then(function () {
+        btn.innerHTML = '✓ Hotovo';
+        setTimeout(function () { refresh(); }, 800);
+      }).catch(function (e) {
+        console.error('[reportReadiness] consultantPack.generateOne failed:', e);
+        btn.disabled = false;
+        btn.innerHTML = origLabel;
+        alert('Generování selhalo: ' + e.message);
+      });
+    }
     // Master PDF export
     const exportBtn = wrapper.querySelector('#kr-rr-export');
     const stickyBtn = wrapper.querySelector('#kr-rr-sticky-export');
@@ -33336,6 +33590,7 @@ if (document.readyState === 'loading') {
       '</div>' +
       // Verdict + stats
       renderVerdictBanner(r.verdict) +
+      renderCriticalIssues(r) +
       renderStatsGrid(r) +
       renderLayerBreakdown(r) +
       // Conditional sections
@@ -35583,10 +35838,10 @@ if (document.readyState === 'loading') {
     }
   };
 
-  console.info('[KOMPAS] Phase 20: Čistý PDF builder loaded (alpha.56).');
+  console.info('[KOMPAS] Phase 20: Čistý PDF builder loaded (alpha.62).');
 })();
 /* ========================================================================
-   Phase 21: Export Tab Clean Replacement (alpha.56)
+   Phase 21: Export Tab Clean Replacement (alpha.62)
 
    ARCHITECTURE
    ------------
@@ -36066,12 +36321,18 @@ if (document.readyState === 'loading') {
   }
 
   function openSeniorPdf() {
-    const exportBtn = document.getElementById('kr-rr-export');
-    if (exportBtn) {
-      // Note: button is hidden by us but still functional via click()
-      exportBtn.click();
-    } else if (window.KR.pdfMaster && typeof window.KR.pdfMaster.open === 'function') {
-      window.KR.pdfMaster.open();
+    // Call pdfMaster.open() directly — don't route through vendor's hidden
+    // kr-rr-export button, because it may be disabled by the QA gate
+    // (qa-gate-hardening / phase 11). My own UI button must always be
+    // functional: the user explicitly chose to export, QA gate concerns
+    // are surfaced via the Report Readiness panel below.
+    if (window.KR.pdfMaster && typeof window.KR.pdfMaster.open === 'function') {
+      try {
+        window.KR.pdfMaster.open();
+      } catch (e) {
+        console.error('[exportRedesign] Senior PDF failed:', e);
+        alert('Senior PDF generování selhalo: ' + e.message);
+      }
     } else {
       alert('Senior PDF zatím nedostupný.');
     }
@@ -36087,7 +36348,7 @@ if (document.readyState === 'loading') {
     panel.innerHTML =
       '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px">' +
         '<div>' +
-          '<div style="font-size:10px;font-weight:700;color:#4f46e5;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:4px">Export deliverable · v7.0.0-alpha.56</div>' +
+          '<div style="font-size:10px;font-weight:700;color:#4f46e5;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:4px">Export deliverable · v7.0.0-alpha.62</div>' +
           '<h2 style="margin:0;font-size:20px;font-weight:700;color:#1a1a2e;letter-spacing:-0.02em">Stáhnout report</h2>' +
           '<p style="margin:3px 0 0;font-size:12.5px;color:#6b7280;line-height:1.5">Dvě hlavní varianty PDF. Markdown a JSON pro pokročilé formáty.</p>' +
         '</div>' +
@@ -36370,7 +36631,7 @@ if (document.readyState === 'loading') {
     }, 800);
 
     console.log(
-      '%c[KOMPAS] Phase 21 Export Replacement active (alpha.56)',
+      '%c[KOMPAS] Phase 21 Export Replacement active (alpha.62)',
       'background:#7c3aed;color:#fff;padding:2px 8px;border-radius:4px;font-weight:600',
       '— safety net every 800ms enforces tab boundary'
     );
@@ -36395,7 +36656,7 @@ if (document.readyState === 'loading') {
     _findContainer: findExportScrollContainer
   };
 
-  console.info('[KOMPAS] Phase 21: Export Tab Clean Replacement loaded (alpha.56).');
+  console.info('[KOMPAS] Phase 21: Export Tab Clean Replacement loaded (alpha.62).');
 })();
 /* ========================================================================
    Phase 22: UX Polish (alpha.40)
