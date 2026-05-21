@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- KOMPAS™ build v7.0.0-alpha.62 (2026-05-13) — Path C source tree (v7-source). See LAYERS.md / FEATURES.md for architecture. -->
+<!-- KOMPAS™ build v7.0.0-alpha.63 (2026-05-17) — Path C source tree (v7-source). See LAYERS.md / FEATURES.md for architecture. -->
 <!-- KOMPAS v6.9.8: Data flow audit + enrichment. 1) Agresivní varianta rozšířena z 5 gap TITULŮ na plný kontext (brief, SWOT, segmenty, konkurenti, mezery, důkazy, mediální mix, reference k hlavní strategii) — není to už datově hladová kopie, ale plnohodnotná kontra-strategie. 2) briefAn (SWOT z úvodní analýzy briefu) nově vstupuje do yi.strategy jako samostatná sekce, plus instrukce v system-role aby AI explicitně vázala doporučení na silné/slabé stránky, příležitosti, rizika. 3) Media prompt (yi.media) rozšířen o demandPools, evidence a positioning — kanály se teď doporučují s vědomím segmentů, tónu značky a tržních důkazů. 4) Positioning framework prompt rozšířen o naše analyzované konkurenty, top mezery a segmenty — white space se identifikuje na základě REÁLNÉ competitive intel, ne jen archetypu. Žádné AI volání nebylo zjednodušeno — všechny předchozí datové vazby zachovány. -->
-<html lang="cs"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>KOMPAS™ v7.0.0-alpha.62 — Competitive Growth Operating System</title><script>
+<html lang="cs"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>KOMPAS™ v7.0.0-alpha.63 — Competitive Growth Operating System</title><script>
 /* KOMPAS console shim — runs before everything. Some preview/sandbox
    environments lack console.info/warn/error/debug; vendor's bundle and
    our phases call these at module load, throwing TypeError that breaks
@@ -25952,6 +25952,57 @@ if (document.readyState === 'loading') {
   function clean(s) { return cleaner.cleanText(s || ''); }
   function ce(s) { return escHtml(clean(s)); }  // clean + escape
 
+  /**
+   * shortClientName(brief) → returns a SHORT, title-suitable client name.
+   * If the user pasted a long descriptive paragraph as clientName (common
+   * mistake), this extracts just the recognizable brand part. Examples:
+   *   "BILLA Česká republika – součást rakouské skupiny REWE. Na českém trhu
+   *    působí od roku 1991..." → "BILLA Česká republika"
+   *   "Tesco" → "Tesco" (already short)
+   * The full text is still available via brief.clientName for body display.
+   */
+  function shortClientName(brief) {
+    const raw = (brief && brief.clientName) || '';
+    if (!raw) return 'Klientský projekt';
+    const s = raw.trim();
+    if (s.length <= 50) return s;
+    // Try first em-dash or en-dash (often separates brand from descriptor)
+    const dashIdx = s.search(/\s[\u2013\u2014–—-]\s/);
+    if (dashIdx > 0 && dashIdx <= 50) return s.slice(0, dashIdx).trim();
+    // Try first period (end of first sentence)
+    const dotIdx = s.indexOf('.');
+    if (dotIdx > 0 && dotIdx <= 60) return s.slice(0, dotIdx).trim();
+    // Try first comma
+    const commaIdx = s.indexOf(',');
+    if (commaIdx > 0 && commaIdx <= 50) return s.slice(0, commaIdx).trim();
+    // Hard fallback: trim to ~45 chars at word boundary, add ellipsis
+    let cut = s.slice(0, 45);
+    const lastSpace = cut.lastIndexOf(' ');
+    if (lastSpace > 20) cut = cut.slice(0, lastSpace);
+    return cut.trim() + '…';
+  }
+
+  /**
+   * companyTagline(brief) → returns the LONG descriptive remainder of
+   * clientName, or empty string if clientName is already short.
+   * Use this as a tagline/subtitle below the short name.
+   */
+  function companyTagline(brief) {
+    const raw = (brief && brief.clientName) || '';
+    if (!raw) return '';
+    const s = raw.trim();
+    if (s.length <= 50) return '';  // no tagline needed for short names
+    const short = shortClientName(brief);
+    // Strip the short name from the start, plus any leading dash/punct
+    const tail = s.slice(short.length).replace(/^[\s\u2013\u2014–—\-.,;:]+/, '').trim();
+    return tail;
+  }
+
+  // Expose for other phase modules (Decision Layer, Strategy, Evidence, ...)
+  window.KR.pdfV2 = window.KR.pdfV2 || {};
+  window.KR.pdfV2.shortClientName = shortClientName;
+  window.KR.pdfV2.companyTagline = companyTagline;
+
   function badge(cls) {
     if (!evCls) return '';
     return evCls.badge(cls, { size: 'sm' });
@@ -26032,7 +26083,8 @@ if (document.readyState === 'loading') {
       // Middle: Title
       '<div style="position:relative;z-index:2">' +
         '<div style="font-size:11px;font-weight:600;color:#a5b4fc;letter-spacing:0.18em;text-transform:uppercase;margin-bottom:18px">' + escHtml(subtitleByMode[mode]) + '</div>' +
-        '<h1 style="font-size:48px;font-weight:800;margin:0 0 10px;letter-spacing:-0.04em;line-height:1.05;max-width:760px">' + escHtml(b.clientName || 'Klientský projekt') + '</h1>' +
+        '<h1 style="font-size:48px;font-weight:800;margin:0 0 10px;letter-spacing:-0.04em;line-height:1.05;max-width:760px">' + escHtml(shortClientName(b)) + '</h1>' +
+        (companyTagline(b) ? '<p style="font-size:15px;color:#e0e7ff;line-height:1.55;margin:0 0 16px;max-width:760px;opacity:0.85">' + escHtml(companyTagline(b)) + '</p>' : '') +
         '<p style="font-size:18px;color:#c7d2fe;line-height:1.5;margin:0;max-width:680px">' + escHtml(b.segment || 'Strategická analýza') + '</p>' +
         (b.product ? '<p style="font-size:13px;color:#a5b4fc;opacity:0.7;line-height:1.5;margin:14px 0 0;max-width:560px">' + escHtml(b.product).slice(0, 200) + '</p>' : '') +
       '</div>' +
@@ -26175,7 +26227,7 @@ if (document.readyState === 'loading') {
     return '<div class="page exec-decision" style="padding:50px 60px;page-break-after:always">' +
       '<div style="font-size:10px;font-weight:700;color:#4f46e5;letter-spacing:0.16em;text-transform:uppercase;margin-bottom:6px">Decision Layer · Stránka 1</div>' +
       '<h1 style="font-size:30px;font-weight:800;color:#1a1a2e;margin:0 0 6px;letter-spacing:-0.025em">Executive Decision Page</h1>' +
-      '<p style="font-size:13px;color:#8888a0;margin:0 0 32px">Hlavní rozhodnutí, které stojí před vedením ' + escHtml(b.clientName || 'klienta') + '.</p>' +
+      '<p style="font-size:13px;color:#8888a0;margin:0 0 32px">Hlavní rozhodnutí, které stojí před vedením ' + escHtml(shortClientName(b)) + '.</p>' +
       
       // Decision
       '<div style="background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff;padding:24px 28px;border-radius:12px;margin-bottom:20px">' +
@@ -26530,6 +26582,67 @@ if (document.readyState === 'loading') {
 
   const { escHtml, clean, ce, badge, sectionDivider, consultantBox, soWhatBox, pageBreak } = helpers;
 
+  /**
+   * Lightweight markdown→HTML for inline strings that may contain:
+   *   **bold**, *italic*, and pipe-separated tables `| a | b |\n|---|---|\n| 1 | 2 |`.
+   * For Czech measurement plans, KPI definitions, etc. that AI returns
+   * with raw markdown but our renderer escHtml-ed everything.
+   * Stays simple — does NOT call marked.js or pull external deps.
+   */
+  function mdInline(s) {
+    if (!s) return '';
+    const str = String(s);
+
+    // Detect markdown table — lines starting with `|` and a divider row `|---|`.
+    // If present, extract & convert to <table>, leave surrounding text as-is.
+    const tableRe = /(^|\n)((?:\|[^\n]+\|\n?)+)/g;
+    let html = '';
+    let lastIdx = 0;
+    let m;
+    while ((m = tableRe.exec(str)) !== null) {
+      // Text before this table
+      html += renderProse(str.slice(lastIdx, m.index + m[1].length));
+      // The table block
+      html += renderTable(m[2]);
+      lastIdx = m.index + m[0].length;
+    }
+    html += renderProse(str.slice(lastIdx));
+    return html;
+  }
+
+  function renderProse(text) {
+    if (!text) return '';
+    // Escape, then apply bold/italic
+    let out = escHtml(text);
+    // **bold** (must come before *italic*)
+    out = out.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+    // *italic*
+    out = out.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>');
+    // Preserve line breaks
+    out = out.replace(/\n/g, '<br>');
+    return out;
+  }
+
+  function renderTable(block) {
+    const lines = block.trim().split(/\n+/).filter(l => l.trim().startsWith('|'));
+    if (lines.length < 2) return renderProse(block);
+    const cells = lines.map(line => line.replace(/^\||\|$/g, '').split('|').map(c => c.trim()));
+    // Detect divider row (|---|---|) — skip it
+    const isDivider = (row) => row.every(c => /^:?-+:?$/.test(c));
+    const header = cells[0];
+    const dataStart = isDivider(cells[1]) ? 2 : 1;
+    const rows = cells.slice(dataStart);
+    return '<table style="width:100%;border-collapse:collapse;margin:8px 0;font-size:10.5px">' +
+      '<thead><tr style="background:#f3f4f6">' +
+        header.map(h => '<th style="text-align:left;padding:6px 8px;font-weight:600;font-size:9.5px;color:#374151;border-bottom:1px solid #d1d5db">' + renderProse(h) + '</th>').join('') +
+      '</tr></thead>' +
+      '<tbody>' +
+        rows.map(r => '<tr style="border-bottom:1px solid #f0eeeb">' +
+          r.map(c => '<td style="padding:6px 8px;vertical-align:top">' + renderProse(c) + '</td>').join('') +
+        '</tr>').join('') +
+      '</tbody></table>';
+  }
+
   /* ════════════════════════════════════════════════════════════════════
      STRATEGY & EXECUTION LAYER
   ════════════════════════════════════════════════════════════════════ */
@@ -26637,7 +26750,7 @@ if (document.readyState === 'loading') {
       // alpha.23: AI Positioning Framework (if generated on Nastavení značky tab)
       (p.frameworkText ? '<div style="margin-top:18px;padding:18px 22px;background:#fafbfc;border:1px solid #e5e7eb;border-radius:10px">' +
         '<div style="font-size:10px;font-weight:700;color:#7c3aed;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:10px">AI Positioning Framework</div>' +
-        '<div style="font-size:11.5px;color:#3d3d56;line-height:1.65;white-space:pre-wrap">' + escHtml(clean(p.frameworkText)) + '</div>' +
+        '<div style="font-size:11.5px;color:#3d3d56;line-height:1.65;white-space:pre-wrap">' + mdInline(clean(p.frameworkText)) + '</div>' +
       '</div>' : '') +
       '</div>';
   }
@@ -26790,7 +26903,7 @@ if (document.readyState === 'loading') {
 
       if (tree.measurementPlan) {
         body += '<div style="margin-top:10px;padding:12px 16px;background:#ecfdf5;border-left:3px solid #059669;border-radius:0 8px 8px 0;font-size:11.5px;color:#065f46;line-height:1.55">' +
-          '<strong>Measurement plan:</strong> ' + escHtml(tree.measurementPlan) +
+          '<strong>Measurement plan:</strong> ' + mdInline(tree.measurementPlan) +
         '</div>';
       }
 
@@ -27194,7 +27307,7 @@ if (document.readyState === 'loading') {
     
     // Page header runs (printed via @page)
     const headerHtml = '<div class="page-header" style="position:fixed;top:0;left:0;right:0;height:24px;border-bottom:1px solid #f0eeeb;display:flex;justify-content:space-between;align-items:center;padding:6px 50px;font-size:9px;color:#8888a0;background:#fff">' +
-      '<div>KOMPAS™ · ' + escHtml(b.clientName || 'Strategy Report') + '</div>' +
+      '<div>KOMPAS™ · ' + escHtml(window.KR.pdfV2.shortClientName(b)) + '</div>' +
       '<div>DŮVĚRNÉ · CONFIDENTIAL</div>' +
     '</div>';
 
@@ -27266,9 +27379,16 @@ if (document.readyState === 'loading') {
     }
 
     return '<!DOCTYPE html><html lang="cs"><head><meta charset="utf-8">' +
-      '<title>KOMPAS™ — ' + escHtml(b.clientName || 'Strategy') + ' — ' + escHtml(MODES[options.mode] || '') + '</title>' +
+      '<title>KOMPAS™ — ' + escHtml(window.KR.pdfV2.shortClientName(b)) + ' — ' + escHtml(MODES[options.mode] || '') + '</title>' +
       '<style>' +
-        '@page { size: A4; margin: 18mm 0; }' +
+        // Suppress Chromium print-preview headers/footers (date stamp top,
+        // file:// URL bottom). Without these, every page has a browser
+        // chrome header that looks like a draft printout, not a deliverable.
+        '@page { ' +
+          'size: A4; margin: 18mm 12mm; ' +
+          '@top-left { content: ""; } @top-center { content: ""; } @top-right { content: ""; } ' +
+          '@bottom-left { content: ""; } @bottom-center { content: ""; } @bottom-right { content: ""; } ' +
+        '}' +
         '* { box-sizing: border-box; }' +
         'body { margin: 0; padding: 0; font-family: "DM Sans", system-ui, -apple-system, sans-serif; color: #1a1a2e; background: #fff; -webkit-font-smoothing: antialiased; }' +
         '.page { background: #fff; }' +
@@ -27629,12 +27749,33 @@ if (document.readyState === 'loading') {
           '<th style="text-align:center;padding:9px 10px;font-size:9px;font-weight:700;color:#8888a0;letter-spacing:0.06em;text-transform:uppercase;width:80px">Timeline</th>' +
         '</tr></thead><tbody>' +
         exps.slice(0, 8).map((e, i) => {
+          // Vendor returns {hypothesis, test, metric, priority} — no name/timeline.
+          // Synthesize a short name (first few words of test or hypothesis)
+          // and a timeline based on priority.
+          let name = e.name || e.title || e.test || '';
+          if (!name && e.hypothesis) {
+            // First clause/phrase of hypothesis — strip "Pokud …, pak …" prefix
+            name = e.hypothesis.replace(/^Pokud\s+/i, '').split(/[,;]|—|–/)[0].trim();
+          }
+          if (!name) name = 'Experiment ' + (i + 1);
+          // Truncate to ~8 words for table column
+          const words = name.split(/\s+/);
+          if (words.length > 8) name = words.slice(0, 8).join(' ') + '…';
+
+          let timeline = e.timeline || e.duration || '';
+          if (!timeline) {
+            if (e.priority === 'high') timeline = '2–4 týdny';
+            else if (e.priority === 'medium') timeline = '4–6 týdnů';
+            else if (e.priority === 'low') timeline = '6–8 týdnů';
+            else timeline = '4–6 týdnů';
+          }
+
           return '<tr style="border-bottom:1px solid #f0eeeb">' +
             '<td style="padding:10px;color:#8888a0;font-weight:600;vertical-align:top">' + (i + 1) + '</td>' +
-            '<td style="padding:10px;font-weight:700;color:#1a1a2e;vertical-align:top">' + escHtml(clean(e.name || e.title || '?')) + '</td>' +
+            '<td style="padding:10px;font-weight:700;color:#1a1a2e;vertical-align:top">' + escHtml(clean(name)) + '</td>' +
             '<td style="padding:10px;color:#3d3d56;line-height:1.5;vertical-align:top">' + escHtml(clean(e.hypothesis || e.description || '—')) + '</td>' +
             '<td style="padding:10px;color:#4f46e5;font-weight:600;font-size:10.5px;vertical-align:top">' + escHtml(e.kpi || e.metric || '—') + '</td>' +
-            '<td style="text-align:center;padding:10px;color:#3d3d56;font-size:10.5px;vertical-align:top">' + escHtml(e.timeline || e.duration || '—') + '</td>' +
+            '<td style="text-align:center;padding:10px;color:#3d3d56;font-size:10.5px;vertical-align:top">' + escHtml(timeline) + '</td>' +
           '</tr>';
         }).join('') +
       '</tbody></table>' +
@@ -27652,7 +27793,12 @@ if (document.readyState === 'loading') {
 
   function buildMessagingArchitecture(state) {
     const m = (state.strategy && state.strategy.messagingArchitecture);
-    if (!m || (!m.coreMessage && !m.audienceVersions)) return '';
+    const ap = (state.strategy && state.strategy.acquisitionPlaybook) || [];
+    // Render this page if EITHER messaging architecture has content OR
+    // acquisition playbook has steps. Previously skipped entire page when
+    // messagingArchitecture was absent, hiding the Playbook.
+    const hasMsg = m && (m.coreMessage || m.audienceVersions);
+    if (!hasMsg && ap.length === 0) return '';
 
     const h = getHeadline(state, 'messaging');
 
@@ -27661,21 +27807,21 @@ if (document.readyState === 'loading') {
 
     if (h && h.headline) html += consultantBox(h.headline, h.soWhat);
 
-    if (m.coreMessage) {
+    if (m && m.coreMessage) {
       html += '<div style="margin-top:14px;padding:22px 24px;background:linear-gradient(135deg,#eef0ff,#f5f3ff);border:1px solid #ddd6fe;border-radius:12px;text-align:center">' +
         '<div style="font-size:9px;font-weight:700;color:#6366f1;letter-spacing:0.16em;text-transform:uppercase;margin-bottom:8px">Core Message</div>' +
         '<div style="font-size:18px;font-weight:700;color:#1a1a2e;line-height:1.4;letter-spacing:-0.01em">' + escHtml(clean(m.coreMessage)) + '</div>' +
       '</div>';
     }
 
-    if (m.tone) {
+    if (m && m.tone) {
       html += '<div style="margin-top:14px;padding:14px 18px;background:#fafaf9;border:1px solid #e5e3df;border-radius:8px;display:flex;gap:14px;align-items:flex-start">' +
         '<div style="font-size:9px;font-weight:700;color:#8888a0;letter-spacing:0.16em;text-transform:uppercase;flex-shrink:0;padding-top:2px">Tone of Voice</div>' +
         '<div style="font-size:12px;color:#3d3d56;line-height:1.6">' + escHtml(clean(m.tone)) + '</div>' +
       '</div>';
     }
 
-    if (m.audienceVersions && m.audienceVersions.length) {
+    if (m && m.audienceVersions && m.audienceVersions.length) {
       html += '<div style="margin-top:18px"><div style="font-size:11px;font-weight:700;color:#1a1a2e;margin-bottom:10px;letter-spacing:-0.01em">Audience-specific messaging</div>';
       m.audienceVersions.slice(0, 5).forEach(av => {
         html += '<div style="margin-bottom:10px;padding:14px 16px;background:#fff;border:1px solid #e5e3df;border-left:4px solid #4f46e5;border-radius:0 8px 8px 0">' +
@@ -27688,15 +27834,31 @@ if (document.readyState === 'loading') {
     }
 
     // Acquisition playbook ties to messaging if available
-    const ap = (state.strategy && state.strategy.acquisitionPlaybook) || [];
+    // (ap is declared at top of function — was duplicate-declared here, breaking bundle)
     if (ap.length) {
       html += '<div style="margin-top:20px;padding:14px 16px;background:#f8f7f4;border-radius:8px">' +
         '<div style="font-size:9px;font-weight:700;color:#8888a0;letter-spacing:0.16em;text-transform:uppercase;margin-bottom:8px">Akviziční playbook (' + ap.length + ' kroků)</div>' +
         '<ol style="margin:0;padding-left:20px;font-size:11.5px;color:#3d3d56;line-height:1.7">' +
-          ap.slice(0, 6).map(a =>
-            '<li><strong style="color:#1a1a2e">' + escHtml(clean(a.step || a.action || '?')) + '</strong>' +
-            (a.kpi ? ' · <span style="color:#4f46e5;font-weight:600">KPI: ' + escHtml(a.kpi) + '</span>' : '') + '</li>'
-          ).join('') +
+          ap.slice(0, 8).map(a => {
+            // Vendor returns {step, action, how, why, competitorReference, timeline, kpi}.
+            // Earlier code read `a.step || a.action` which is wrong: step is a NUMBER (1,2,3...)
+            // and is truthy, so it shadowed the action text. Use action as primary,
+            // then how as secondary detail.
+            const title = a.action || a.step || a.name || '?';
+            const detail = a.how || a.detail || a.description || '';
+            const why = a.why || '';
+            const tl = a.timeline || '';
+            return '<li style="margin-bottom:6px">' +
+              '<strong style="color:#1a1a2e">' + escHtml(clean(title)) + '</strong>' +
+              (detail ? '<div style="font-size:10.5px;color:#3d3d56;margin-top:2px">' + escHtml(clean(detail)) + '</div>' : '') +
+              (why ? '<div style="font-size:10px;color:#4f46e5;margin-top:2px;font-style:italic">Proč: ' + escHtml(clean(why)) + '</div>' : '') +
+              ((a.kpi || tl) ? '<div style="font-size:10px;color:#8888a0;margin-top:2px">' +
+                (a.kpi ? '<span style="color:#4f46e5;font-weight:600">KPI: ' + escHtml(a.kpi) + '</span>' : '') +
+                (a.kpi && tl ? ' · ' : '') +
+                (tl ? 'Kdy: ' + escHtml(tl) : '') +
+              '</div>' : '') +
+            '</li>';
+          }).join('') +
         '</ol>' +
       '</div>';
     }
@@ -34982,10 +35144,15 @@ if (document.readyState === 'loading') {
   function buildCover(state) {
     const b = state.brief || {};
     const now = new Date();
+    const shortName = (window.KR.pdfV2 && window.KR.pdfV2.shortClientName)
+      ? window.KR.pdfV2.shortClientName(b) : (b.clientName || 'KOMPAS Report');
+    const tagline = (window.KR.pdfV2 && window.KR.pdfV2.companyTagline)
+      ? window.KR.pdfV2.companyTagline(b) : '';
     return (
       '<div style="padding:60px 50px;text-align:left;page-break-after:always">' +
         '<div style="font-size:11px;font-weight:600;color:#6b7280;letter-spacing:0.16em;text-transform:uppercase;margin-bottom:60px">KOMPAS™ — Map → Gap → Mix</div>' +
-        '<h1 style="margin:0 0 8px;font-size:32px;font-weight:700;color:#1a1a2e;letter-spacing:-0.02em">' + escHtml(b.clientName || 'KOMPAS Report') + '</h1>' +
+        '<h1 style="margin:0 0 8px;font-size:32px;font-weight:700;color:#1a1a2e;letter-spacing:-0.02em">' + escHtml(shortName) + '</h1>' +
+        (tagline ? '<p style="font-size:14px;color:#4b5563;line-height:1.55;margin:0 0 20px;max-width:680px">' + escHtml(tagline) + '</p>' : '') +
         '<div style="font-size:14px;color:#4b5563;margin-bottom:40px">' +
           (b.segment ? escHtml(b.segment) + ' · ' : '') +
           (b.product ? escHtml(b.product) : '') +
@@ -35253,7 +35420,8 @@ if (document.readyState === 'loading') {
     body += '</table>';
 
     if (pos.frameworkText) {
-      body += '<div style="margin-top:14px;padding:14px 16px;background:#fafafa;border-radius:6px;font-size:12px;color:#1f2937;line-height:1.7;white-space:pre-wrap">' + escHtml(pos.frameworkText) + '</div>';
+      // Process inline markdown (**bold**, *italic*, tables) instead of just escHtml
+      body += '<div style="margin-top:14px;padding:14px 16px;background:#fafafa;border-radius:6px;font-size:12px;color:#1f2937;line-height:1.7">' + md2html(pos.frameworkText) + '</div>';
     }
 
     return body;
@@ -35765,7 +35933,11 @@ if (document.readyState === 'loading') {
         '<meta charset="UTF-8">' +
         '<title>' + escHtml(docTitle) + '</title>' +
         '<style>' +
-          '@page { size: A4; margin: 18mm 16mm; }' +
+          '@page { ' +
+            'size: A4; margin: 18mm 16mm; ' +
+            '@top-left { content: ""; } @top-center { content: ""; } @top-right { content: ""; } ' +
+            '@bottom-left { content: ""; } @bottom-center { content: ""; } @bottom-right { content: ""; } ' +
+          '}' +
           'body { font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 12px; color: #1f2937; margin: 0; padding: 0; line-height: 1.6; }' +
           'h1, h2, h3 { color: #1a1a2e; }' +
           'table { border-collapse: collapse; }' +
@@ -35838,10 +36010,10 @@ if (document.readyState === 'loading') {
     }
   };
 
-  console.info('[KOMPAS] Phase 20: Čistý PDF builder loaded (alpha.62).');
+  console.info('[KOMPAS] Phase 20: Čistý PDF builder loaded (alpha.63).');
 })();
 /* ========================================================================
-   Phase 21: Export Tab Clean Replacement (alpha.62)
+   Phase 21: Export Tab Clean Replacement (alpha.63)
 
    ARCHITECTURE
    ------------
@@ -36348,7 +36520,7 @@ if (document.readyState === 'loading') {
     panel.innerHTML =
       '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px">' +
         '<div>' +
-          '<div style="font-size:10px;font-weight:700;color:#4f46e5;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:4px">Export deliverable · v7.0.0-alpha.62</div>' +
+          '<div style="font-size:10px;font-weight:700;color:#4f46e5;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:4px">Export deliverable · v7.0.0-alpha.63</div>' +
           '<h2 style="margin:0;font-size:20px;font-weight:700;color:#1a1a2e;letter-spacing:-0.02em">Stáhnout report</h2>' +
           '<p style="margin:3px 0 0;font-size:12.5px;color:#6b7280;line-height:1.5">Dvě hlavní varianty PDF. Markdown a JSON pro pokročilé formáty.</p>' +
         '</div>' +
@@ -36631,7 +36803,7 @@ if (document.readyState === 'loading') {
     }, 800);
 
     console.log(
-      '%c[KOMPAS] Phase 21 Export Replacement active (alpha.62)',
+      '%c[KOMPAS] Phase 21 Export Replacement active (alpha.63)',
       'background:#7c3aed;color:#fff;padding:2px 8px;border-radius:4px;font-weight:600',
       '— safety net every 800ms enforces tab boundary'
     );
@@ -36656,7 +36828,7 @@ if (document.readyState === 'loading') {
     _findContainer: findExportScrollContainer
   };
 
-  console.info('[KOMPAS] Phase 21: Export Tab Clean Replacement loaded (alpha.62).');
+  console.info('[KOMPAS] Phase 21: Export Tab Clean Replacement loaded (alpha.63).');
 })();
 /* ========================================================================
    Phase 22: UX Polish (alpha.40)
